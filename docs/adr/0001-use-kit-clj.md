@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-04-25
 decision-makers: user (kschltz), agent
 consulted: {}
