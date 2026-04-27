@@ -79,7 +79,7 @@
   (let [uri (:uri req)
         is-sse (or (= uri "/dashboard/events")
                    (some? (re-matches #"/list/[A-Za-z0-9]+/events" uri)))]
-    (binding [*out* *err*] (println "[ROUTER] uri:" uri "is-sse:" is-sse))
+    (.println System/err (str "[ROUTER] uri: " uri " is-sse: " is-sse))
     is-sse))
 
 (defn app [{:keys [db secrets mailer]}]
