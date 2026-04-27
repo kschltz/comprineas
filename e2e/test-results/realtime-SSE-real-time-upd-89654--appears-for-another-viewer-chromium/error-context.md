@@ -44,7 +44,7 @@ Call log:
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "JNWDXT" [ref=e19] [cursor=pointer]
+          - button "LN9PUU" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -76,7 +76,7 @@ Call log:
         - heading "Share List" [level=3] [ref=e50]
         - paragraph [ref=e51]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e52]:
-          - code [ref=e53]: JNWDXT
+          - code [ref=e53]: LN9PUU
           - button "📋" [ref=e54] [cursor=pointer]
       - generic [ref=e55]:
         - heading "Participants" [level=3] [ref=e56]

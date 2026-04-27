@@ -21,8 +21,8 @@
   "Remove an SSE channel for a list code."
   [list-code channel]
   (swap! sse-channels update list-code (fn [chs]
-                                          (let [remaining (disj chs channel)]
-                                            (if (empty? remaining) nil remaining)))))
+                                         (let [remaining (disj chs channel)]
+                                           (if (empty? remaining) nil remaining)))))
 
 (defn connected-viewers
   "Return the set of SSE channels for a list code."
@@ -31,18 +31,6 @@
 
 ;; ──────────────────────────────────────────────────────────
 ;; send! helper — delegates to http-kit send! when available
-;; Must be defined before broadcast! and handlers that use it
-;; ──────────────────────────────────────────────────────────
-
-(defn send!
-  "Send data to an http-kit channel. Wraps org.httpkit.server/send!."
-  [ch data]
-  (try
-    ((resolve 'org.httpkit.server/send!) ch data)
-    (catch Exception e
-      ;; http-kit not available in test mode; no-op
-      nil)))
-
 ;; ──────────────────────────────────────────────────────────
 ;; Broadcast
 ;; ──────────────────────────────────────────────────────────
@@ -88,9 +76,9 @@
     ;; Return async response for http-kit
     {:status 200
      :headers {"Content-Type" "text/event-stream"
-                "Cache-Control" "no-cache"
-                "Connection" "keep-alive"
-                "X-Accel-Buffering" "no"}
+               "Cache-Control" "no-cache"
+               "Connection" "keep-alive"
+               "X-Accel-Buffering" "no"}
      :body (fn [ch]
              (on-open ch))}))
 
@@ -105,9 +93,9 @@
                    (unregister-channel! "dashboard" ch))]
     {:status 200
      :headers {"Content-Type" "text/event-stream"
-                "Cache-Control" "no-cache"
-                "Connection" "keep-alive"
-                "X-Accel-Buffering" "no"}
+               "Cache-Control" "no-cache"
+               "Connection" "keep-alive"
+               "X-Accel-Buffering" "no"}
      :body (fn [ch]
              (on-open ch))}))
 

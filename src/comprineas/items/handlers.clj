@@ -122,7 +122,7 @@
                           {:id (:id item)
                            :html (str "<div id=\"item-" (:id item) "\" hx-swap-oob=\"delete\"></div>")}))
         (-> (resp/response "")
-            (resp/content-type "text/html")))))
+            (resp/content-type "text/html"))))))
 
 (defn items-list-page
   "GET /list/:code/items-list — Return full item list HTML fragment."
@@ -135,4 +135,4 @@
       (let [items (items-db/find-items-by-list db (:id lst))]
         (-> (render-item-list items lst)
             (resp/response)
-            (resp/content-type "text/html")))))))
+            (resp/content-type "text/html"))))))

@@ -82,4 +82,6 @@
         (ring/create-default-handler)))
       (wrap-deps {:db db :secrets secrets :mailer mailer})
       (auth-mw/wrap-auth db)
-      (wrap-defaults (assoc-in site-defaults [:security :anti-forgery] false))))
+      (wrap-defaults (-> site-defaults
+                         (assoc-in [:security :anti-forgery] false)
+                         (assoc :websocket nil)))))

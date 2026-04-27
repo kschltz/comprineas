@@ -1,1 +1,5 @@
-nREPL server started on port 39673 on host localhost - nrepl://localhost:39673
+[0.002s][warning][os,container] Cgroup memory controller path at '/sys/fs/cgroup' seems to have moved to '/../../../app.slice/app-tmux.slice/tmux-spawn-1481e626-1542-40e9-ad94-dea44cf440d7.scope', detected limits won't be accurate
+[0.002s][warning][os,container] Cgroup cpu controller path at '/sys/fs/cgroup' seems to have moved to '/../../../app.slice/app-tmux.slice/tmux-spawn-1481e626-1542-40e9-ad94-dea44cf440d7.scope', detected limits won't be accurate
+[0.002s][warning][os,container] Cgroup memory controller path at '/sys/fs/cgroup' seems to have moved to '/../../../app.slice/app-tmux.slice/tmux-spawn-1481e626-1542-40e9-ad94-dea44cf440d7.scope', detected limits won't be accurate
+[0.002s][warning][os,container] Cgroup cpu controller path at '/sys/fs/cgroup' seems to have moved to '/../../../app.slice/app-tmux.slice/tmux-spawn-1481e626-1542-40e9-ad94-dea44cf440d7.scope', detected limits won't be accurate
+nREPL server started on port 46313 on host localhost - nrepl://localhost:46313

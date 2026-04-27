@@ -44,7 +44,7 @@ Call log:
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "D4PP5E" [ref=e19] [cursor=pointer]
+          - button "0NTZKA" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -68,7 +68,7 @@ Call log:
         - heading "Share List" [level=3] [ref=e43]
         - paragraph [ref=e44]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e45]:
-          - code [ref=e46]: D4PP5E
+          - code [ref=e46]: 0NTZKA
           - button "📋" [ref=e47] [cursor=pointer]
       - generic [ref=e48]:
         - heading "Participants" [level=3] [ref=e49]
