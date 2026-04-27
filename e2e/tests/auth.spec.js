@@ -23,25 +23,23 @@ async function browserLogin(page, email, password) {
 
 test.describe('Authentication', () => {
 
-  test('login works standalone', async ({ page }) => {
-    const email = uniqueEmail('solo');
+  test('register & login via browser only', async ({ page }) => {
+    const email = uniqueEmail('browser');
     const password = 'password123';
-    // Create user via API (follows redirects, returns 200 from /dashboard)
-    await page.request.post('/register', {
-      form: { email, password, password_confirm: password, display_name: 'Solo' },
-    });
-    // Login via browser form
-    await page.goto('/login');
+    
+    // Register via browser form
+    await page.goto('/register');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
+    await page.fill('input[name="display_name"]', 'Browser');
     
     await Promise.all([
       page.waitForURL('**/dashboard', { timeout: 10000 }),
-      page.click('button:has-text("Log in")')
+      page.click('button:has-text("Register")')
     ]);
     
-    await expect(page.locator('body')).toContainText('Hi, Solo');
-    console.log('SUCCESS — dashboard loaded');
+    await expect(page.locator('body')).toContainText('Hi, Browser');
+    console.log('Registration + dashboard works!');
   });
 
   test('user can login and logout', async ({ page }) => {
