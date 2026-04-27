@@ -1,0 +1,140 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: auth.spec.js >> Authentication >> forgot password page renders
+- Location: tests/auth.spec.js:59:3
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('input[name="email"]')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for locator('input[name="email"]')
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - heading [level=2] [ref=e2]
+  - table [ref=e3]:
+    - rowgroup [ref=e4]:
+      - 'row "URI: /forgot-password" [ref=e5]':
+        - rowheader "URI:" [ref=e6]
+        - cell "/forgot-password" [ref=e7]
+      - 'row "STATUS: 500" [ref=e8]':
+        - rowheader "STATUS:" [ref=e9]
+        - cell "500" [ref=e10]
+      - row [ref=e11]:
+        - rowheader "MESSAGE:" [ref=e12]
+        - cell [ref=e13]
+      - 'row "SERVLET: org.eclipse.jetty.ee9.servlet.ServletHandler$Default404Servlet-7cff8996" [ref=e14]':
+        - rowheader "SERVLET:" [ref=e15]
+        - cell "org.eclipse.jetty.ee9.servlet.ServletHandler$Default404Servlet-7cff8996" [ref=e16]
+      - row [ref=e17]:
+        - rowheader "CAUSED BY:" [ref=e18]
+        - cell [ref=e19]
+  - heading "Caused by:" [level=3] [ref=e20]
+  - generic [ref=e21]: "clojure.lang.ExceptionInfo: resource-path for auth/forgot-password.html returned nil, typically means the file doesn't exist in your classpath. {:type :selmer/validation-error, :error \"resource-path for auth/forgot-password.html returned nil, typically means the file doesn't exist in your classpath.\", :error-template \"<html>\\n<head>\\n <font face='arial'>\\n <style type='text/css'>\\n body {\\n margin: 0px;\\n background: #ececec;\\n }\\n #header {\\n padding-top: 5px;\\n padding-left: 25px;\\n color: white;\\n background: #a32306;\\n text-shadow: 1px 1px #33333;\\n border-bottom: 1px solid #710000;\\n }\\n #error-wrap {\\n border-top: 5px solid #d46e6b;\\n }\\n #error-message {\\n color: #800000;\\n background: #f5a29f;\\n padding: 10px;\\n text-shadow: 1px 1px #FFBBBB;\\n border-top: 1px solid #f4b1ae;\\n }\\n #file-wrap {\\n border-top: 5px solid #2a2a2a;\\n }\\n #file {\\n color: white;\\n background: #333333;\\n padding: 10px;\\n padding-left: 20px;\\n text-shadow: 1px 1px #555555;\\n border-top: 1px solid #444444;\\n }\\n #line-number {\\n width=20px;\\n color: #8b8b8b;\\n background: #d6d6d6;\\n float: left;\\n padding: 5px;\\n text-shadow: 1px 1px #EEEEEE;\\n border-right: 1px solid #b6b6b6;\\n }\\n #line-content {\\n float: left;\\n padding: 5px;\\n }\\n #error-content {\\n float: left;\\n width: 100%;\\n border-top: 5px solid #cdcdcd;\\n border-bottom: 5px solid #cdcdcd;\\n }\\n </style>\\n</head>\\n<body>\\n<div id='header'>\\n <h1>Template Compilation Error</h1>\\n</div>\\n<div id='error-wrap'>\\n <div id='error-message'>{{error}}.</div>\\n</div>\\n{% if template %}\\n<div id='file-wrap'>\\n <div id='file'>In {{template}}{% if line %} on line {{line}}{% endif %}.</div>\\n</div>\\n{% for error in validation-errors %}\\n<div id='error-content'>\\n <div id='line-number'>{{error.line}}</div>\\n <div id='line-content'>{{error.tag}}</div>\\n</div>\\n{% endfor %}\\n{% endif %}\\n</body>\\n</html>\", :line nil, :template nil, :validation-errors ({:tag \" \", :line nil})} at selmer.validator$validation_error.invokeStatic(validator.clj:35) at selmer.validator$validation_error.invoke(validator.clj:25) at selmer.validator$validation_error.invokeStatic(validator.clj:27) at selmer.validator$validation_error.invoke(validator.clj:25) at selmer.parser$render_file.invokeStatic(parser.clj:152) at selmer.parser$render_file.doInvoke(parser.clj:128) at clojure.lang.RestFn.invoke(RestFn.java:428) at comprineas.auth.handlers$forgot_password_page.invokeStatic(handlers.clj:135) at comprineas.auth.handlers$forgot_password_page.invoke(handlers.clj:134) at muuntaja.middleware$wrap_format$fn__6692.invoke(middleware.clj:73) at ring.middleware.params$wrap_params$fn__6941.invoke(params.clj:75) at reitit.ring$ring_handler$fn__5242.invoke(ring.cljc:366) at clojure.lang.AFn.applyToHelper(AFn.java:154) at clojure.lang.AFn.applyTo(AFn.java:144) at clojure.lang.AFunction$1.doInvoke(AFunction.java:33) at clojure.lang.RestFn.invoke(RestFn.java:411) at comprineas.web.routes$wrap_deps$fn__13578.invoke(routes.clj:69) at ring.middleware.session$wrap_session$fn__7270.invoke(session.clj:112) at comprineas.auth.middleware$wrap_auth$fn__13250.invoke(middleware.clj:13) at ring.websocket.keepalive$wrap_websocket_keepalive$fn__8356.invoke(keepalive.clj:56) at ring.middleware.flash$wrap_flash$fn__7338.invoke(flash.clj:39) at ring.middleware.session$wrap_session$fn__7270.invoke(session.clj:112) at ring.middleware.keyword_params$wrap_keyword_params$fn__7459.invoke(keyword_params.clj:53) at ring.middleware.nested_params$wrap_nested_params$fn__7517.invoke(nested_params.clj:89) at ring.middleware.multipart_params$handle_request_and_errors$fn__7775$fn__7776.invoke(multipart_params.clj:139) at ring.middleware.multipart_params$handle_request_and_errors.invokeStatic(multipart_params.clj:137) at ring.middleware.multipart_params$handle_request_and_errors.invoke(multipart_params.clj:136) at ring.middleware.multipart_params$wrap_multipart_params$fn__7781.invoke(multipart_params.clj:191) at ring.middleware.params$wrap_params$fn__6941.invoke(params.clj:75) at ring.middleware.cookies$wrap_cookies$fn__7148.invoke(cookies.clj:198) at ring.middleware.resource$wrap_resource_prefer_resources$fn__7827.invoke(resource.clj:25) at ring.middleware.content_type$wrap_content_type$fn__7923.invoke(content_type.clj:39) at ring.middleware.default_charset$wrap_default_charset$fn__7947.invoke(default_charset.clj:31) at ring.middleware.not_modified$wrap_not_modified$fn__7898.invoke(not_modified.clj:66) at ring.middleware.x_headers$wrap_x_header$fn__7301.invoke(x_headers.clj:22) at ring.middleware.x_headers$wrap_x_header$fn__7301.invoke(x_headers.clj:22) at ring.adapter.jetty$proxy_handler$fn__13692.invoke(jetty.clj:115) at ring.adapter.jetty.proxy$org.eclipse.jetty.ee9.servlet.ServletHandler$ff19274a.doHandle(Unknown Source) at org.eclipse.jetty.ee9.nested.ScopedHandler.nextHandle(ScopedHandler.java:195) at org.eclipse.jetty.ee9.nested.ContextHandler.doHandle(ContextHandler.java:1045) at org.eclipse.jetty.ee9.nested.ScopedHandler.nextScope(ScopedHandler.java:164) at org.eclipse.jetty.ee9.servlet.ServletHandler.doScope(ServletHandler.java:483) at ring.adapter.jetty.proxy$org.eclipse.jetty.ee9.servlet.ServletHandler$ff19274a.doScope(Unknown Source) at org.eclipse.jetty.ee9.nested.ScopedHandler.nextScope(ScopedHandler.java:162) at org.eclipse.jetty.ee9.nested.ContextHandler.doScope(ContextHandler.java:966) at org.eclipse.jetty.ee9.nested.ScopedHandler.handle(ScopedHandler.java:125) at org.eclipse.jetty.ee9.nested.ContextHandler.handle(ContextHandler.java:1719) at org.eclipse.jetty.ee9.nested.HttpChannel$RequestDispatchable.dispatch(HttpChannel.java:1564) at org.eclipse.jetty.ee9.nested.HttpChannel.dispatch(HttpChannel.java:723) at org.eclipse.jetty.ee9.nested.HttpChannel.handle(HttpChannel.java:511) at org.eclipse.jetty.ee9.nested.ContextHandler$CoreContextHandler$CoreToNestedHandler.handle(ContextHandler.java:2943) at org.eclipse.jetty.server.handler.ContextHandler.handle(ContextHandler.java:1064) at org.eclipse.jetty.server.Server.handle(Server.java:182) at org.eclipse.jetty.server.internal.HttpChannelState$HandlerInvoker.run(HttpChannelState.java:662) at org.eclipse.jetty.server.internal.HttpConnection.onFillable(HttpConnection.java:416) at org.eclipse.jetty.io.AbstractConnection$ReadCallback.succeeded(AbstractConnection.java:322) at org.eclipse.jetty.io.FillInterest.fillable(FillInterest.java:99) at org.eclipse.jetty.io.SelectableChannelEndPoint$1.run(SelectableChannelEndPoint.java:53) at org.eclipse.jetty.util.thread.strategy.AdaptiveExecutionStrategy.runTask(AdaptiveExecutionStrategy.java:480) at org.eclipse.jetty.util.thread.strategy.AdaptiveExecutionStrategy.consumeTask(AdaptiveExecutionStrategy.java:443) at org.eclipse.jetty.util.thread.strategy.AdaptiveExecutionStrategy.tryProduce(AdaptiveExecutionStrategy.java:293) at org.eclipse.jetty.util.thread.strategy.AdaptiveExecutionStrategy.produce(AdaptiveExecutionStrategy.java:195) at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:979) at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.doRunJob(QueuedThreadPool.java:1209) at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.run(QueuedThreadPool.java:1164) at java.base/java.lang.Thread.run(Thread.java:1474)"
+  - separator [ref=e22]
+  - link "Powered by Jetty:// 12.0.18" [ref=e23] [cursor=pointer]:
+    - /url: https://jetty.org/
+  - separator [ref=e24]
+```
+
+# Test source
+
+```ts
+  1  | const { test, expect } = require('@playwright/test');
+  2  | 
+  3  | function uniqueEmail(prefix) {
+  4  |   return `${prefix}.${Date.now()}@example.com`;
+  5  | }
+  6  | 
+  7  | async function register(page, email, password, displayName) {
+  8  |   await page.goto('/register');
+  9  |   await page.fill('input[name="email"]', email);
+  10 |   await page.fill('input[name="password"]', password);
+  11 |   await page.fill('input[name="display_name"]', displayName);
+  12 |   await page.click('button[type="submit"]');
+  13 |   // post-register redirects to /, which has no route;
+  14 |   // wait for navigation to settle then check we ended up somewhere valid
+  15 |   await page.waitForTimeout(500);
+  16 | }
+  17 | 
+  18 | async function login(page, email, password) {
+  19 |   await page.goto('/login');
+  20 |   await page.fill('input[name="email"]', email);
+  21 |   await page.fill('input[name="password"]', password);
+  22 |   await page.click('button[type="submit"]');
+  23 |   await page.waitForURL('**/dashboard');
+  24 | }
+  25 | 
+  26 | test.describe('Authentication', () => {
+  27 | 
+  28 |   test('user can register', async ({ page }) => {
+  29 |     const email = uniqueEmail('reg');
+  30 |     await register(page, email, 'password123', 'Reggie');
+  31 |     // After registration, app should land on dashboard or redirect there
+  32 |     await page.goto('/dashboard');
+  33 |     await expect(page.locator('body')).toContainText('Hi, Reggie');
+  34 |   });
+  35 | 
+  36 |   test('user can login with password', async ({ page }) => {
+  37 |     const email = uniqueEmail('login');
+  38 |     // Register first
+  39 |     await register(page, email, 'password123', 'LoginTest');
+  40 |     // Now logout if needed, then login
+  41 |     await page.goto('/login');
+  42 |     await page.fill('input[name="email"]', email);
+  43 |     await page.fill('input[name="password"]', 'password123');
+  44 |     await page.click('button[type="submit"]');
+  45 |     await page.waitForURL('**/dashboard');
+  46 |     await expect(page.locator('body')).toContainText('Hi, LoginTest');
+  47 |   });
+  48 | 
+  49 |   test('user can logout', async ({ page }) => {
+  50 |     const email = uniqueEmail('logout');
+  51 |     await register(page, email, 'password123', 'LogoutTest');
+  52 |     await login(page, email, 'password123');
+  53 |     // Click logout
+  54 |     await page.click('button:has-text("Logout")');
+  55 |     // Should redirect to login page
+  56 |     await expect(page.locator('body')).toContainText(/log in|login/i);
+  57 |   });
+  58 | 
+  59 |   test('forgot password page renders', async ({ page }) => {
+  60 |     await page.goto('/forgot-password');
+> 61 |     await expect(page.locator('input[name="email"]')).toBeVisible();
+     |                                                       ^ Error: expect(locator).toBeVisible() failed
+  62 |     await expect(page.locator('button[type="submit"]')).toBeVisible();
+  63 |   });
+  64 | 
+  65 |   test('invalid login shows error', async ({ page }) => {
+  66 |     const email = uniqueEmail('badlogin');
+  67 |     await register(page, email, 'password123', 'BadLogin');
+  68 |     // Try wrong password
+  69 |     await page.goto('/login');
+  70 |     await page.fill('input[name="email"]', email);
+  71 |     await page.fill('input[name="password"]', 'wrongpassword');
+  72 |     await page.click('button[type="submit"]');
+  73 |     // Should show error — either inline or stay on login page with message
+  74 |     await expect(page.locator('body')).toContainText(/invalid|wrong|error/i);
+  75 |   });
+  76 | 
+  77 | });
+  78 | 
+```
