@@ -21,5 +21,6 @@
             :test {:extra-paths ["test"]
                    :extra-deps {lambdaisland/kaocha       {:mvn/version "1.91.1392"}
                                 com.h2database/h2        {:mvn/version "2.3.232"}
-                                io.zonky.test/embedded-postgres {:mvn/version "2.1.0"}}}
+                                io.zonky.test/embedded-postgres {:mvn/version "2.1.0"}
+                                http-kit/http-kit        {:mvn/version "2.8.0"}}}
             :migratus {:main-opts ["-m" "comprineas.db.migrations"]}}}
