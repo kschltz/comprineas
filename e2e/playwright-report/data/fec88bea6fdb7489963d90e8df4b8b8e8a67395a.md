@@ -62,7 +62,7 @@ Timeout: 10000ms
 Call log:
   - Expect "not toContainText" with timeout 10000ms
   - waiting for locator('#item-list')
-    14 × locator resolved to <div id="item-list" hx-trigger="load" class="px-6 pb-6" hx-get="/list/94BO7V/items-list">…</div>
+    14 × locator resolved to <div id="item-list" hx-trigger="load" class="px-6 pb-6" hx-get="/list/WL3AH9/items-list">…</div>
        - unexpected value "
                         Loading items…
                     
@@ -126,7 +126,7 @@ Call log:
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "94BO7V" [ref=e19] [cursor=pointer]
+          - button "WL3AH9" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -165,7 +165,7 @@ Call log:
         - heading "Share List" [level=3] [ref=e57]
         - paragraph [ref=e58]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e59]:
-          - code [ref=e60]: 94BO7V
+          - code [ref=e60]: WL3AH9
           - button "📋" [ref=e61] [cursor=pointer]
       - generic [ref=e62]:
         - heading "Participants" [level=3] [ref=e63]
@@ -178,10 +178,6 @@ Call log:
 # Test source
 
 ```ts
-  1   | // @ts-check
-  2   | const { test, expect } = require('@playwright/test');
-  3   | 
-  4   | function uniqueEmail(prefix) {
   5   |   return `${prefix}-${Date.now()}@example.com`;
   6   | }
   7   | 
@@ -271,43 +267,48 @@ Call log:
   91  | 
   92  |     // Click delete on the Butter item — find by aria-label on the first matching button
   93  |     const deleteBtn = page.locator('#item-list button[aria-label="Delete item"]').first();
-  94  |     console.log('Clicking delete button, count:', await deleteBtn.count());
-  95  |     await deleteBtn.click();
-  96  | 
-  97  |     // Give HTMX time to process the swap
-  98  |     await page.waitForTimeout(500);
-  99  | 
-> 100 |     await expect(page.locator('#item-list')).not.toContainText('Butter');
+  94  |     // Click delete — catch the response
+  95  |     const [deleteResp] = await Promise.all([
+  96  |       page.waitForResponse(r => r.request().method() === 'DELETE' && r.url().includes('/items/'), { timeout: 5000 }),
+  97  |       deleteBtn.click()
+  98  |     ]);
+  99  |     console.log('Delete status:', deleteResp.status());
+  100 |     console.log('Delete body:', await deleteResp.text());
+  101 | 
+  102 |     // Give HTMX time to process the swap
+  103 |     await page.waitForTimeout(500);
+  104 | 
+> 105 |     await expect(page.locator('#item-list')).not.toContainText('Butter');
       |                                                  ^ Error: expect(locator).not.toContainText(expected) failed
-  101 |     await expect(page.locator('#item-list')).toContainText('Cheese');
-  102 |   });
-  103 | 
-  104 |   test('should show an error when trying to add an item with an empty name', async ({ page }) => {
-  105 |     const email = uniqueEmail('items5');
-  106 |     await registerAndLogin(page, email, 'testpass123', 'Test User 5');
-  107 |     await createList(page, 'Test List 5');
+  106 |     await expect(page.locator('#item-list')).toContainText('Cheese');
+  107 |   });
   108 | 
-  109 |     await page.evaluate(() => {
-  110 |       document.querySelector('input[name="name"]').removeAttribute('required');
-  111 |     });
-  112 | 
-  113 |     await page.fill('input[name="name"]', '');
-  114 |     await page.fill('input[name="quantity"]', '1');
-  115 |     await page.click('button:has-text("Add Item")');
-  116 | 
-  117 |     // HTMX OOB swap may take a tick — wait briefly
-  118 |     await page.waitForTimeout(1000);
-  119 |     const errorText = await page.locator('#add-item-error').textContent();
-  120 |     // The error div should have content after submission
-  121 |     if (errorText && errorText.trim()) {
-  122 |       expect(errorText).toMatch(/Name|required|empty/i);
-  123 |     } else {
-  124 |       // Fallback: check if response HTML contains error anywhere
-  125 |       const bodyText = await page.textContent('body');
-  126 |       expect(bodyText).toMatch(/Name|required|empty/i);
-  127 |     }
-  128 |   });
-  129 | 
-  130 | });
-  131 | 
+  109 |   test('should show an error when trying to add an item with an empty name', async ({ page }) => {
+  110 |     const email = uniqueEmail('items5');
+  111 |     await registerAndLogin(page, email, 'testpass123', 'Test User 5');
+  112 |     await createList(page, 'Test List 5');
+  113 | 
+  114 |     await page.evaluate(() => {
+  115 |       document.querySelector('input[name="name"]').removeAttribute('required');
+  116 |     });
+  117 | 
+  118 |     await page.fill('input[name="name"]', '');
+  119 |     await page.fill('input[name="quantity"]', '1');
+  120 |     await page.click('button:has-text("Add Item")');
+  121 | 
+  122 |     // HTMX OOB swap may take a tick — wait briefly
+  123 |     await page.waitForTimeout(1000);
+  124 |     const errorText = await page.locator('#add-item-error').textContent();
+  125 |     // The error div should have content after submission
+  126 |     if (errorText && errorText.trim()) {
+  127 |       expect(errorText).toMatch(/Name|required|empty/i);
+  128 |     } else {
+  129 |       // Fallback: check if response HTML contains error anywhere
+  130 |       const bodyText = await page.textContent('body');
+  131 |       expect(bodyText).toMatch(/Name|required|empty/i);
+  132 |     }
+  133 |   });
+  134 | 
+  135 | });
+  136 | 
 ```
