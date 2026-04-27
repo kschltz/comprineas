@@ -19,18 +19,18 @@
     {:pg pg :ds ds}))
 
 (defn- app [{:keys [ds port]}]
-  (let [handler (routes/app {:db ds
-               :secrets {:hmac "e2e-hmac-secret-32-bytes!!"
-                         :session "e2e-session-secret-32-byt!"}
-               :mailer {:stub? true}})]
-    ;; Wrap with error logging to catch dashboard crashes
+  (let [base (routes/app {:db ds
+                           :secrets {:hmac "e2e-hmac-secret-32-bytes!!"
+                                     :session "e2e-session-secret-32-byt!"}
+                           :mailer {:stub? true}})]
     (fn [req]
       (try
-        (handler req)
+        (base req)
         (catch Exception e
-          (println "[ERROR]" (.getMessage e))
           (.printStackTrace e)
-          {:status 500 :headers {"Content-Type" "text/plain"} :body (str "Error: " (.getMessage e))}))))))
+          {:status 500
+           :headers {"Content-Type" "text/plain"}
+           :body (str "ERROR: " (.getMessage e))}))))))
 
 (defn -main [& _args]
   (let [{:keys [pg ds]} (start-embedded-pg!)
