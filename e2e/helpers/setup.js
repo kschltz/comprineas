@@ -50,10 +50,27 @@ function startApp() {
   });
 }
 
+function waitForServer(url, timeoutMs = 10000) {
+  const start = Date.now();
+  const http = require('http');
+  return new Promise((resolve, reject) => {
+    function poll() {
+      http.get(url, (res) => { res.resume(); resolve(); })
+        .on('error', () => {
+          if (Date.now() - start > timeoutMs) reject(new Error('Server not ready'));
+          else setTimeout(poll, 200);
+        });
+    }
+    poll();
+  });
+}
+
 module.exports = async function globalSetup() {
   console.log('[e2e] Starting app server...');
   const proc = await startApp();
-  // Store for teardown
+  // The app signals E2E_READY but Jetty may not be listening yet — poll for it
+  await waitForServer('http://localhost:3001/login');
+  console.log('[e2e] Server accepting connections');
   process.env.__E2E_SERVER_PID = String(proc.pid);
   global.__e2eServerProc = proc;
 };
