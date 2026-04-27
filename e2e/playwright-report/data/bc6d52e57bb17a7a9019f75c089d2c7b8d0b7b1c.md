@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: auth.spec.js >> Authentication >> dashboard accessible
-- Location: tests/auth.spec.js:33:3
+- Name: auth.spec.js >> Authentication >> forgot password page renders
+- Location: tests/auth.spec.js:82:3
 
 # Error details
 
@@ -15,161 +15,22 @@
 Error: expect(locator).toContainText(expected) failed
 
 Locator: locator('body')
+Expected substring: "Forgot"
+Received string:    "OK"
 Timeout: 5000ms
-- Expected substring  -  1
-+ Received string     + 59
-
-- Simple
-+
-+   
-+     Comprineas
-+     Log in to your account
-+
-+     
-+
-+     
-+
-+     
-+     
-+       
-+         Password
-+       
-+       
-+         Magic Link
-+       
-+     
-+
-+     
-+     
-+       
-+       
-+         Email address
-+         
-+       
-+       
-+         Password
-+         
-+       
-+       
-+         Log in
-+       
-+       
-+         Forgot password?
-+       
-+     
-+
-+     
-+     
-+       
-+       
-+         Email address
-+         
-+       
-+       
-+         Send Magic Link
-+       
-+     
-+
-+     
-+       Don't have an account?
-+       Create account
-+     
-+   
-+
-+   
-+
-+
 
 Call log:
   - Expect "toContainText" with timeout 5000ms
   - waiting for locator('body')
-    9 × locator resolved to <body class="bg-gray-50 min-h-screen flex items-center justify-center">…</body>
-      - unexpected value "
-  
-    Comprineas
-    Log in to your account
-
-    
-
-    
-
-    
-    
-      
-        Password
-      
-      
-        Magic Link
-      
-    
-
-    
-    
-      
-      
-        Email address
-        
-      
-      
-        Password
-        
-      
-      
-        Log in
-      
-      
-        Forgot password?
-      
-    
-
-    
-    
-      
-      
-        Email address
-        
-      
-      
-        Send Magic Link
-      
-    
-
-    
-      Don't have an account?
-      Create account
-    
-  
-
-  
-
-"
+    9 × locator resolved to <body>…</body>
+      - unexpected value "OK"
 
 ```
 
 # Page snapshot
 
 ```yaml
-- generic [ref=e2]:
-  - heading "Comprineas" [level=1] [ref=e3]
-  - paragraph [ref=e4]: Log in to your account
-  - generic [ref=e5]:
-    - button "Password" [ref=e6] [cursor=pointer]
-    - button "Magic Link" [ref=e7] [cursor=pointer]
-  - generic [ref=e8]:
-    - generic [ref=e9]:
-      - generic [ref=e10]: Email address
-      - textbox "Email address" [ref=e11]: "''"
-    - generic [ref=e12]:
-      - generic [ref=e13]: Password
-      - textbox "Password" [ref=e14]
-    - button "Log in" [ref=e15] [cursor=pointer]
-    - paragraph [ref=e16]:
-      - link "Forgot password?" [ref=e17] [cursor=pointer]:
-        - /url: /forgot-password
-  - paragraph [ref=e18]:
-    - text: Don't have an account?
-    - link "Create account" [ref=e19] [cursor=pointer]:
-      - /url: /register
+- generic [ref=e2]: OK
 ```
 
 # Test source
@@ -238,8 +99,7 @@ Call log:
   61 |     
   62 |     await page.goto('/dashboard');
   63 |     console.log('Final URL:', page.url());
-> 64 |     await expect(page.locator('body')).toContainText('Simple', { timeout: 5000 });
-     |                                        ^ Error: expect(locator).toContainText(expected) failed
+  64 |     await expect(page.locator('body')).toContainText('Simple', { timeout: 5000 });
   65 |   });
   66 | 
   67 |   test('user can login with password', async ({ page }) => {
@@ -260,7 +120,8 @@ Call log:
   82 |   test('forgot password page renders', async ({ page }) => {
   83 |     await page.goto('/forgot-password');
   84 |     // Page should contain the heading
-  85 |     await expect(page.locator('body')).toContainText('Forgot', { timeout: 5000 });
+> 85 |     await expect(page.locator('body')).toContainText('Forgot', { timeout: 5000 });
+     |                                        ^ Error: expect(locator).toContainText(expected) failed
   86 |   });
   87 | 
   88 |   test('invalid login shows error', async ({ page }) => {

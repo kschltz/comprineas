@@ -34,10 +34,12 @@
 
 (defn -main [& _args]
   (let [{:keys [pg ds]} (start-embedded-pg!)
-        port  3001]
-    ;; Quick test: serve a simple handler that just returns "OK"
-    (jetty/run-jetty (fn [req] {:status 200 :headers {"Content-Type" "text/plain"} :body "OK"})
-                     {:port port :join? false})
+        port  3001
+        handler (routes/app {:db ds
+                             :secrets {:hmac "e2e-hmac-secret-32-bytes!!"
+                                       :session "e2e-session-secret-32-byt!"}
+                             :mailer {:stub? true}})]
+    (jetty/run-jetty handler {:port port :join? false})
     (println (str "E2E_READY port=" port))
     (flush)
     (deref (promise))))
