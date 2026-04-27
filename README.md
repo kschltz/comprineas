@@ -40,7 +40,7 @@ A real-time shared grocery & shopping list application. Collaborate with family 
 | **Styling** | Tailwind CSS (PostCSS build) | Utility-first, dev/prod parity; ADR-0005 |
 | **Real-time** | SSE over HTTP (http-kit async) | Unidirectional push, auto-reconnect; ADR-0006 |
 | **Auth** | Session cookies + bcrypt + magic link | Dual login, easy revocation; ADR-0007 |
-| **Sessions** | PostgreSQL (JDBC store) | Dev/prod parity, one DB; ADR-0007 |
+| **E2E Testing** | Playwright (JavaScript) | Multi-browser, multi-context SSE testing; ADR-0008 |
 | **Templates** | Selmer (Clojure) | Server-rendered, HTMX-compatible |
 
 ---
@@ -174,7 +174,7 @@ This project follows a **specification-first** discipline. **No code is written 
 | 0004 | **HTMX** for UI | SSE extension, async Ring required, multi-target via OOB-swap |
 | 0005 | **Tailwind CSS** for styling | PostCSS in all envs, DaisyUI excluded, Selmer macros for verbosity |
 | 0006 | **SSE** for real-time | http-kit `with-channel`, auto-reconnect, HTTP/2 recommended for tab limits |
-| 0007 | **Session auth** (password + magic link) | PostgreSQL sessions, bcrypt 10+, rate limiter, HMAC magic tokens |
+| 0008 | **Playwright** for e2e | 24 browser tests, embedded PG, multi-user SSE scenarios |
 
 ---
 
