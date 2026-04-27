@@ -66,14 +66,27 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
 
     await test.step('User B navigates to the same list', async () => {
       await navigateToListViaUrl(pageB, code);
+      // Wait for SSE connection and listen for events
       await pageB.waitForTimeout(1000);
-      // Check SSE connection by looking at the sse-connect attribute
-      const sseInfo = await pageB.evaluate(() => {
-        const el = document.querySelector('[sse-connect]');
-        const url = el ? el.getAttribute('sse-connect') : null;
-        return { sseConnectUrl: url, origin: window.location.origin };
+      // Set up SSE event listener
+      await pageB.evaluate(() => {
+        window.__sseEvents = [];
+        const body = document.querySelector('[sse-connect]');
+        if (body) {
+          body.addEventListener('htmx:sseMessage', (e) => {
+            window.__sseEvents.push({ type: e.type, data: e.detail?.data });
+            console.log('[BROWSER SSE]', e.type, e.detail);
+          });
+          body.addEventListener('htmx:sseOpen', (e) => {
+            window.__sseEvents.push({ type: 'sseOpen' });
+            console.log('[BROWSER SSE] Connection opened');
+          });
+          body.addEventListener('htmx:sseError', (e) => {
+            window.__sseEvents.push({ type: 'sseError', error: e.detail?.error?.message });
+            console.log('[BROWSER SSE] Error:', e.detail?.error);
+          });
+        }
       });
-      console.log('SSE info:', JSON.stringify(sseInfo));
     });
 
     await test.step('User A adds an item', async () => {
@@ -84,6 +97,9 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
     });
 
     await test.step('Assert User B sees the item within 5 seconds via SSE', async () => {
+      // Check what SSE events arrived
+      const events = await pageB.evaluate(() => window.__sseEvents || []);
+      console.log('SSE events received by B:', JSON.stringify(events));
       await expect(pageB.locator('text=Fresh Milk')).toBeVisible({ timeout: 5000 });
     });
 
