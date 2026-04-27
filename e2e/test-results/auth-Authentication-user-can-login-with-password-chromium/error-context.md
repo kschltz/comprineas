@@ -15,7 +15,6 @@
 TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
 =========================== logs ===========================
 waiting for navigation to "**/dashboard" until "load"
-  navigated to "chrome-error://chromewebdata/"
 ============================================================
 ```
 
