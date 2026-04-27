@@ -1,15 +1,17 @@
 const { test, expect } = require('@playwright/test');
 
-// ──────────────────────────────────────────────────────────
-// Inline login/logout helpers
-// ──────────────────────────────────────────────────────────
+function uniqueEmail(prefix) {
+  return `${prefix}-${Date.now()}@example.com`;
+}
 
 async function login(page, email, password) {
   await page.goto('/login');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard');
+  await Promise.all([
+    page.waitForURL('**/dashboard', { timeout: 10000 }),
+    page.click('button:has-text("Log in")')
+  ]);
 }
 
 async function registerAndLogin(page, email, password, displayName) {
@@ -17,16 +19,21 @@ async function registerAndLogin(page, email, password, displayName) {
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.fill('input[name="display_name"]', displayName);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard');
+  await Promise.all([
+    page.waitForURL('**/dashboard', { timeout: 10000 }),
+    page.click('button[type="submit"]')
+  ]);
 }
 
-async function logout(page) {
-  // POST to /logout (GET is not accepted — POST only per route config)
-  await page.request.post('/logout');
-  // Navigate to login to confirm session is cleared
-  await page.goto('/login');
-  await page.waitForURL('**/login');
+async function createListOnDashboard(page, name) {
+  await page.fill('input[name="name"]', name);
+  await page.click('button:has-text("Create List")');
+  await page.waitForURL(/\/list\/[a-z0-9]{6}/);
+}
+
+async function logoutFromBrowser(page) {
+  await page.click('button:has-text("Logout")');
+  await page.waitForURL('**/login', { timeout: 10000 });
 }
 
 // ──────────────────────────────────────────────────────────
@@ -34,20 +41,13 @@ async function logout(page) {
 // ──────────────────────────────────────────────────────────
 
 test('PRD-0003: Create a new shared list', async ({ page }) => {
-  const id = Date.now();
-  const email    = `create-list-${id}@test.com`;
-  const listName = `Weekly Groceries ${id}`;
+  const email = uniqueEmail('create');
+  const listName = `Weekly Groceries ${Date.now()}`;
 
   await registerAndLogin(page, email, 'testpass123', 'Alice');
 
-  // Fill "Create a New List" form and submit
-  await page.fill('input[name="name"]', listName);
-  await page.click('button:has-text("Create List")');
+  await createListOnDashboard(page, listName);
 
-  // Assert redirect to /list/SOMECODE (6-char alphanumeric code)
-  await page.waitForURL(/\/list\/[a-z0-9]{6}/);
-
-  // Assert list name is visible on the list page
   await expect(page.locator('#list-name')).toContainText(listName);
 });
 
@@ -56,36 +56,28 @@ test('PRD-0003: Create a new shared list', async ({ page }) => {
 // ──────────────────────────────────────────────────────────
 
 test('PRD-0004: Join an existing list by code', async ({ page }) => {
-  const id = Date.now();
-  const emailA   = `join-user-a-${id}@test.com`;
-  const emailB   = `join-user-b-${id}@test.com`;
-  const listName = `Team List ${id}`;
+  const emailA = uniqueEmail('join-a');
+  const emailB = uniqueEmail('join-b');
+  const listName = `Team List ${Date.now()}`;
 
-  // ── User A: register, create a list, extract the code ──
+  // User A: register, create a list, extract the code
   await registerAndLogin(page, emailA, 'testpass123', 'Alice');
-
-  await page.fill('input[name="name"]', listName);
-  await page.click('button:has-text("Create List")');
-  await page.waitForURL(/\/list\/([a-z0-9]{6})/);
+  await createListOnDashboard(page, listName);
 
   const url = page.url();
   const listCode = url.match(/\/list\/([a-z0-9]{6})/)[1];
   expect(listCode).toMatch(/^[a-z0-9]{6}$/);
 
-  // ── Logout User A ──
-  await logout(page);
+  // Logout User A
+  await logoutFromBrowser(page);
 
-  // ── User B: register, join by code ──
+  // User B: register, join by code
   await registerAndLogin(page, emailB, 'testpass456', 'Bob');
 
-  // Fill the join form on the dashboard
   await page.fill('input[name="code"]', listCode);
   await page.click('button:has-text("Join")');
-
-  // Assert redirected to the shared list page
   await page.waitForURL(`/list/${listCode}`);
 
-  // Assert list name matches
   await expect(page.locator('#list-name')).toContainText(listName);
 });
 
@@ -94,31 +86,19 @@ test('PRD-0004: Join an existing list by code', async ({ page }) => {
 // ──────────────────────────────────────────────────────────
 
 test('PRD-0003/0006: Complete a list and see it in past lists', async ({ page }) => {
-  const id = Date.now();
-  const email    = `complete-list-${id}@test.com`;
-  const listName = `Trip to Store ${id}`;
+  const email = uniqueEmail('complete');
+  const listName = `Trip to Store ${Date.now()}`;
 
   await registerAndLogin(page, email, 'testpass123', 'Charlie');
+  await createListOnDashboard(page, listName);
 
-  // Create a list first
-  await page.fill('input[name="name"]', listName);
-  await page.click('button:has-text("Create List")');
-  await page.waitForURL(/\/list\/[a-z0-9]{6}/);
-
-  // Accept the hx-confirm dialog that fires on "Complete List" click
-  page.on('dialog', async (dialog) => {
-    await dialog.accept();
-  });
-
+  // Accept the hx-confirm dialog
+  page.on('dialog', async (dialog) => { await dialog.accept(); });
   await page.click('button:has-text("Complete List")');
-
-  // Assert redirect to /dashboard
   await page.waitForURL('**/dashboard');
 
-  // Assert "Past Lists" heading is visible
+  // Assert "Past Lists" heading is visible and list name appears
   await expect(page.locator('h2:has-text("Past Lists")')).toBeVisible();
-
-  // Assert the completed list name appears in the past-lists section
   await expect(page.locator('text=Trip to Store').first()).toBeVisible();
 });
 
@@ -127,15 +107,9 @@ test('PRD-0003/0006: Complete a list and see it in past lists', async ({ page })
 // ──────────────────────────────────────────────────────────
 
 test('PRD-0004: Navigate to a non-existent list shows error', async ({ page }) => {
-  // Must be logged in (otherwise the app redirects to /login)
-  const id = Date.now();
-  const email = `notfound-${id}@test.com`;
-
+  const email = uniqueEmail('notfound');
   await registerAndLogin(page, email, 'testpass123', 'Diana');
 
-  // Navigate to a non-existent list code (6 uppercase chars)
   await page.goto('/list/ZZZZZZ');
-
-  // Assert "List not found" is visible somewhere on the page
   await expect(page.locator('body')).toContainText(/List not found/i);
 });
