@@ -2,8 +2,7 @@
   "Server-Sent Events infrastructure for real-time list updates (PRD-0003 FR-10, PRD-0004 FR-10, PRD-0005 FR-9/10/11, PRD-0006 FR-8).
    Uses an atom to track SSE channels per list code.
    Broadcasts typed events (list-updated, participant-joined, item-added, item-updated, item-deleted, list-created) to connected clients."
-  (:require [cheshire.core :as json]
-            [ring.util.response :as response]
+  (:require [clojure.string :as string]
             [org.httpkit.server :as http-kit]))
 
 ;; ──────────────────────────────────────────────────────────
@@ -45,9 +44,9 @@
          ;; content doesn't matter — only the event name does.
          ;; SSE multi-line data: each line prefixed with "data: "
          sse-data (if-let [html (:html data)]
-                    (let [lines (clojure.string/split-lines html)]
+                    (let [lines (string/split-lines html)]
                       (str "event: " event-type "\n"
-                           (clojure.string/join "\n" (map #(str "data: " %) lines))
+                           (string/join "\n" (map #(str "data: " %) lines))
                            "\n\n"))
                     (str "event: " event-type "\ndata: {}\n\n"))]
      (doseq [ch channels]
@@ -64,6 +63,25 @@
    (broadcast! ds "dashboard" event-type data)))
 
 ;; ──────────────────────────────────────────────────────────
+;; HTTP response for initial SSE handshake
+;; ──────────────────────────────────────────────────────────
+
+(def ^:private sse-response-headers
+  "Standard headers for SSE handshake response."
+  {"Content-Type"      "text/event-stream"
+   "Cache-Control"     "no-cache"
+   "Connection"        "keep-alive"
+   "X-Accel-Buffering" "no"})
+
+(defn- sse-initial-response
+  "Build the initial HTTP response map for an SSE connection.
+   This is sent as the first message on the channel to establish SSE."
+  []
+  {:status  200
+   :headers sse-response-headers
+   :body    ""})
+
+;; ──────────────────────────────────────────────────────────
 ;; SSE handlers
 ;; ──────────────────────────────────────────────────────────
 
@@ -74,6 +92,8 @@
   (let [list-code (get-in req [:path-params :code])]
     (http-kit/as-channel req
                          {:on-open   (fn [ch]
+                    ;; Send initial HTTP response to establish SSE connection
+                                       (http-kit/send! ch (sse-initial-response))
                                        (register-channel! list-code ch)
                     ;; Send initial comment to keep connection alive
                                        (http-kit/send! ch ":ok\n\n"))
@@ -86,7 +106,10 @@
   [req]
   (http-kit/as-channel req
                        {:on-open   (fn [ch]
+                  ;; Send initial HTTP response to establish SSE connection
+                                     (http-kit/send! ch (sse-initial-response))
                                      (register-channel! "dashboard" ch)
+                  ;; Send initial comment to keep connection alive
                                      (http-kit/send! ch ":ok\n\n"))
                         :on-close  (fn [ch _status]
                                      (unregister-channel! "dashboard" ch))}))
