@@ -106,6 +106,7 @@
             (wrap-deps deps)
             (auth-mw/wrap-auth db))]
     (fn [req]
+      (.println System/err (str "[APP] request: " (:uri req) " " (:request-method req)))
       (if (sse-request? req)
         (sse-handler req)
         (main-handler req)))))
