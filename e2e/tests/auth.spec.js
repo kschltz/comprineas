@@ -17,10 +17,9 @@ async function registerViaApi(page, email, password, displayName) {
 
 async function login(page, email, password) {
   await page.goto('/login');
-  // Target the password form specifically (there are 2 email inputs on the page)
-  await page.fill('#form-password input[name="email"]', email);
-  await page.fill('#form-password input[name="password"]', password);
-  await page.click('#form-password button[type="submit"]');
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await page.click('button:has-text("Log in")');
   await page.waitForURL('**/dashboard', { timeout: 10000 });
 }
 
@@ -64,7 +63,7 @@ test.describe('Authentication', () => {
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', 'wrongpassword');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("Log in")');
     // Should show error — either inline or stay on login page with message
     await expect(page.locator('body')).toContainText(/invalid|wrong|error/i);
   });
