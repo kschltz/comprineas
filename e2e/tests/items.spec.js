@@ -91,8 +91,13 @@ test.describe('PRD-0005: List Items', () => {
 
     // Click delete on the Butter item — find by aria-label on the first matching button
     const deleteBtn = page.locator('#item-list button[aria-label="Delete item"]').first();
-    console.log('Clicking delete button, count:', await deleteBtn.count());
-    await deleteBtn.click();
+    // Click delete — catch the response
+    const [deleteResp] = await Promise.all([
+      page.waitForResponse(r => r.request().method() === 'DELETE' && r.url().includes('/items/'), { timeout: 5000 }),
+      deleteBtn.click()
+    ]);
+    console.log('Delete status:', deleteResp.status());
+    console.log('Delete body:', await deleteResp.text());
 
     // Give HTMX time to process the swap
     await page.waitForTimeout(500);
