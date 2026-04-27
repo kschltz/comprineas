@@ -25,17 +25,14 @@ async function createListAndWait(page, name) {
 }
 
 async function extractListCode(page) {
-  // Try to find the list code from various places in the HTML
   const body = await page.content();
-  // Try hx-post attribute on complete button
-  let m = body.match(/complete\/([a-z0-9]{6})/);
+  // Try hx-post attribute (codes are uppercase)
+  let m = body.match(/hx-post="\/list\/([A-Za-z0-9]{6})/);
   if (m) return m[1];
-  // Try code display button text (6-char alphanumeric)
-  m = body.match(/copyCode\('([a-z0-9]{6})'\)/);
+  // Try copyCode function call
+  m = body.match(/copyCode\('([A-Za-z0-9]{6})'\)/);
   if (m) return m[1];
-  // Try href on list cards
-  m = body.match(/\/list\/([a-z0-9]{6})/);
-  return m ? m[1] : null;
+  return null;
 }
 
 async function navigateToListViaUrl(page, code) {

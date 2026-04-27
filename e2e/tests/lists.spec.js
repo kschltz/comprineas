@@ -27,12 +27,9 @@ async function registerAndLogin(page, email, password, displayName) {
 
 async function createListOnDashboard(page, name) {
   await page.fill('input[name="name"]', name);
-  console.log('Filled name, clicking Create List...');
   await page.click('button:has-text("Create List")');
   // HTMX swaps body, no URL change — wait for list page content
-  console.log('Waiting for #list-name...');
   await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
-  console.log('createListOnDashboard done, URL:', page.url());
 }
 
 async function logoutFromBrowser(page) {
@@ -69,13 +66,11 @@ test('PRD-0004: Join an existing list by code', async ({ page }) => {
   await createListOnDashboard(page, listName);
   
   // Extract the list code — try multiple patterns
+  // Extract the list code from hx-post attribute (codes are uppercase)
   const pageContent = await page.content();
-  // Find the hx-post attribute values
-  const hxPosts = pageContent.match(/hx-post="[^"]*"/g);
-  console.log('hx-post values:', hxPosts);
-  // Also find any 6-char alphanumeric code
-  const codes = pageContent.match(/[a-z0-9]{6}/g);
-  console.log('All 6-char codes:', [...new Set(codes || [])].slice(0, 10));
+  const hxPostMatch = pageContent.match(/hx-post="\/list\/([A-Za-z0-9]{6})/);
+  const listCode = hxPostMatch ? hxPostMatch[1] : null;
+  expect(listCode).toMatch(/^[a-zA-Z0-9]{6}$/);
 
 
   // Logout User A
