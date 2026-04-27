@@ -30,6 +30,25 @@
   (get @sse-channels list-code #{}))
 
 ;; ──────────────────────────────────────────────────────────
+;; SSE streaming helpers
+;; ──────────────────────────────────────────────────────────
+
+(def ^:private sse-response-headers
+  "Standard headers for SSE handshake response."
+  {"Content-Type"      "text/event-stream"
+   "Cache-Control"     "no-cache"
+   "Connection"        "keep-alive"
+   "X-Accel-Buffering" "no"})
+
+(defn- send-sse!
+  "Send data on an http-kit SSE channel without closing it.
+   For the initial response, pass a response map; for subsequent
+   SSE events, pass a string."
+  ([ch data]
+   ;; false = don't close the channel after sending (keep it open for streaming)
+   (http-kit/send! ch data false)))
+
+;; ──────────────────────────────────────────────────────────
 ;; Broadcast
 ;; ──────────────────────────────────────────────────────────
 
@@ -51,7 +70,7 @@
                     (str "event: " event-type "\ndata: {}\n\n"))]
      (doseq [ch channels]
        (try
-         (http-kit/send! ch sse-data)
+         (send-sse! ch sse-data)
          (catch Exception _
            ;; Channel likely closed; remove it
            (unregister-channel! list-code ch)))))))
@@ -61,25 +80,6 @@
    Used for list-created events (PRD-0006 FR-8)."
   ([ds event-type data]
    (broadcast! ds "dashboard" event-type data)))
-
-;; ──────────────────────────────────────────────────────────
-;; HTTP response for initial SSE handshake
-;; ──────────────────────────────────────────────────────────
-
-(def ^:private sse-response-headers
-  "Standard headers for SSE handshake response."
-  {"Content-Type"      "text/event-stream"
-   "Cache-Control"     "no-cache"
-   "Connection"        "keep-alive"
-   "X-Accel-Buffering" "no"})
-
-(defn- sse-initial-response
-  "Build the initial HTTP response map for an SSE connection.
-   This is sent as the first message on the channel to establish SSE."
-  []
-  {:status  200
-   :headers sse-response-headers
-   :body    ""})
 
 ;; ──────────────────────────────────────────────────────────
 ;; SSE handlers
@@ -93,10 +93,14 @@
     (http-kit/as-channel req
                          {:on-open   (fn [ch]
                     ;; Send initial HTTP response to establish SSE connection
-                                       (http-kit/send! ch (sse-initial-response))
+                    ;; false = keep channel open for streaming
+                                       (http-kit/send! ch {:status  200
+                                                           :headers sse-response-headers
+                                                           :body    ""}
+                                                       false)
                                        (register-channel! list-code ch)
                     ;; Send initial comment to keep connection alive
-                                       (http-kit/send! ch ":ok\n\n"))
+                                       (send-sse! ch ":ok\n\n"))
                           :on-close  (fn [ch _status]
                                        (unregister-channel! list-code ch))})))
 
@@ -107,9 +111,13 @@
   (http-kit/as-channel req
                        {:on-open   (fn [ch]
                   ;; Send initial HTTP response to establish SSE connection
-                                     (http-kit/send! ch (sse-initial-response))
+                  ;; false = keep channel open for streaming
+                                     (http-kit/send! ch {:status  200
+                                                         :headers sse-response-headers
+                                                         :body    ""}
+                                                     false)
                                      (register-channel! "dashboard" ch)
                   ;; Send initial comment to keep connection alive
-                                     (http-kit/send! ch ":ok\n\n"))
+                                     (send-sse! ch ":ok\n\n"))
                         :on-close  (fn [ch _status]
                                      (unregister-channel! "dashboard" ch))}))
