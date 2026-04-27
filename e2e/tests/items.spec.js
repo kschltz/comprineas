@@ -70,8 +70,6 @@ test.describe('PRD-0005: List Items', () => {
   });
 
   test('should remove an item from the list when deleted', async ({ page }) => {
-    test.skip(true, 'Known server bug: DELETE /items/:id returns 500');
-    return;
     const email = uniqueEmail('items4');
     await registerAndLogin(page, email, 'testpass123', 'Test User 4');
     await createList(page, 'Test List 4');
@@ -87,13 +85,7 @@ test.describe('PRD-0005: List Items', () => {
 
     // Click delete on the Butter item — find by aria-label on the first matching button
     const deleteBtn = page.locator('#item-list button[aria-label="Delete item"]').first();
-    // Click delete — catch the response
-    const [deleteResp] = await Promise.all([
-      page.waitForResponse(r => r.request().method() === 'DELETE' && r.url().includes('/items/'), { timeout: 5000 }),
-      deleteBtn.click()
-    ]);
-    console.log('Delete status:', deleteResp.status());
-    console.log('Delete body:', await deleteResp.text());
+    await deleteBtn.click();
 
     // Give HTMX time to process the swap
     await page.waitForTimeout(500);
