@@ -77,7 +77,11 @@
 (defn sse-handler
   "Ring handler for SSE connections at /list/:code/events."
   [req]
-  (let [list-code (get-in req [:path-params :code])]
+  (let [list-code (get-in req [:path-params :code])
+        has-async? (some? (:async-channel req))]
+    (when (or (nil? list-code) (not has-async?))
+      (binding [*out* *err*]
+        (println "[SSE WARN] sse-handler called with:" {:list-code list-code :async-channel has-async? :uri (:uri req) :method (:request-method req)})))
     (http-kit/as-channel req
                          {:on-open
                           (fn [ch]

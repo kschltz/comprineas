@@ -66,6 +66,14 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
 
     await test.step('User B navigates to the same list', async () => {
       await navigateToListViaUrl(pageB, code);
+      await pageB.waitForTimeout(1000);
+      // Check SSE connection by looking at the sse-connect attribute
+      const sseInfo = await pageB.evaluate(() => {
+        const el = document.querySelector('[sse-connect]');
+        const url = el ? el.getAttribute('sse-connect') : null;
+        return { sseConnectUrl: url, origin: window.location.origin };
+      });
+      console.log('SSE info:', JSON.stringify(sseInfo));
     });
 
     await test.step('User A adds an item', async () => {
