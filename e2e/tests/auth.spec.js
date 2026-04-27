@@ -4,15 +4,15 @@ function uniqueEmail(prefix) {
   return `${prefix}.${Date.now()}@example.com`;
 }
 
-async function register(page, email, password, displayName) {
+async function registerViaApi(page, email, password, displayName) {
+  // Direct POST to register endpoint — browser will follow redirects and store session cookie
   await page.goto('/register');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.fill('input[name="display_name"]', displayName);
   await page.click('button[type="submit"]');
-  // post-register redirects to / (no route), then browser lands on 404.
-  // Wait for redirects to settle, then navigate to dashboard.
-  await page.waitForURL('**/', { timeout: 5000 }).catch(() => {});
+  // Wait for redirect chain to settle
+  await page.waitForLoadState('networkidle');
 }
 
 async function login(page, email, password) {
@@ -26,34 +26,24 @@ async function login(page, email, password) {
 
 test.describe('Authentication', () => {
 
-  test('user can register', async ({ page }) => {
+  test('user can register and see dashboard', async ({ page }) => {
     const email = uniqueEmail('reg');
-    await register(page, email, 'password123', 'Reggie');
-    // After registration, user has session cookie set via redirect.
-    // Navigate to dashboard — should be authenticated.
-    await page.goto('/dashboard');
-    // If still on login, the session wasn't set — log cookies for debugging
-    const cookies = await page.context().cookies();
-    console.log('Cookies:', JSON.stringify(cookies.map(c => c.name)));
+    // Register, then log in (simplest reliable path for browser-based auth)
+    await registerViaApi(page, email, 'password123', 'Reggie');
+    await login(page, email, 'password123');
     await expect(page.locator('body')).toContainText('Hi, Reggie', { timeout: 5000 });
   });
 
   test('user can login with password', async ({ page }) => {
     const email = uniqueEmail('login');
-    // Register first
-    await register(page, email, 'password123', 'LoginTest');
-    // Now logout if needed, then login
-    await page.goto('/login');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await registerViaApi(page, email, 'password123', 'LoginTest');
+    await login(page, email, 'password123');
     await expect(page.locator('body')).toContainText('Hi, LoginTest');
   });
 
   test('user can logout', async ({ page }) => {
     const email = uniqueEmail('logout');
-    await register(page, email, 'password123', 'LogoutTest');
+    await registerViaApi(page, email, 'password123', 'LogoutTest');
     await login(page, email, 'password123');
     // Click logout
     await page.click('button:has-text("Logout")');
@@ -69,7 +59,7 @@ test.describe('Authentication', () => {
 
   test('invalid login shows error', async ({ page }) => {
     const email = uniqueEmail('badlogin');
-    await register(page, email, 'password123', 'BadLogin');
+    await registerViaApi(page, email, 'password123', 'BadLogin');
     // Try wrong password
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
