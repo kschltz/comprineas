@@ -14,8 +14,11 @@ async function browserLogin(page, email, password) {
   await page.goto('/login');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
-  await page.click('button:has-text("Log in")');
-  await page.waitForURL('**/dashboard', { timeout: 10000 });
+  // Submit the form; catch the navigation event that follows redirects to /dashboard
+  await Promise.all([
+    page.waitForURL('**/dashboard', { timeout: 10000 }),
+    page.click('button:has-text("Log in")')
+  ]);
 }
 
 test.describe('Authentication', () => {
