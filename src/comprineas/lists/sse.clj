@@ -32,6 +32,17 @@
 ;; ──────────────────────────────────────────────────────────
 ;; send! helper — delegates to http-kit send! when available
 ;; ──────────────────────────────────────────────────────────
+
+(defn send!
+  "Send data to an http-kit channel. Wraps org.httpkit.server/send!."
+  [ch data]
+  (try
+    ((resolve 'org.httpkit.server/send!) ch data)
+    (catch Exception e
+      ;; http-kit not available in test mode; no-op
+      nil)))
+
+;; ──────────────────────────────────────────────────────────
 ;; Broadcast
 ;; ──────────────────────────────────────────────────────────
 
@@ -98,13 +109,3 @@
                "X-Accel-Buffering" "no"}
      :body (fn [ch]
              (on-open ch))}))
-
-;; send! helper — delegates to http-kit send! when available
-(defn send!
-  "Send data to an http-kit channel. Wraps org.httpkit.server/send!."
-  [ch data]
-  (try
-    ((resolve 'org.httpkit.server/send!) ch data)
-    (catch Exception e
-      ;; http-kit not available in test mode; no-op
-      nil)))
