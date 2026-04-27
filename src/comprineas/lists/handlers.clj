@@ -137,4 +137,4 @@
             (-> (str "<span id=\"list-name\" hx-swap-oob=\"innerHTML\">" new-name "</span>")
                 (resp/response)
                 (resp/content-type "text/html")))
-          {:status 409 :body "The list was modified by someone else. Please refresh and try again."}))))))
+          {:status 409 :body "The list was modified by someone else. Please refresh and try again."})))))
