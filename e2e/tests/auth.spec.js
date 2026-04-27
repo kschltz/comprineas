@@ -30,27 +30,38 @@ async function browserLogin(page, email, password) {
 
 test.describe('Authentication', () => {
 
-  test('dashboard renders with basic greeting', async ({ page }) => {
-    const email = uniqueEmail('basic');
-    // Create user, then login via form
-    await createUser(page, email, 'testpass', 'Basics');
-    await page.goto('/login');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', 'testpass');
+  test('dashboard accessible', async ({ page }) => {
+    const email = uniqueEmail('simp');
+    // Create user, then login via browser form
+    await createUser(page, email, 'testpass', 'Simple');
     
-    // Submit form — don't wait for navigation, just check what page we end up on
-    await page.click('button:has-text("Log in")');
+    // Try login via request context instead (which will set cookies properly)
+    const loginResp = await page.request.post('/login/password', {
+      form: { email, password: 'testpass' },
+    });
+    console.log('Login status:', loginResp.status());
     
-    // Wait a moment for redirects to settle
-    await page.waitForTimeout(3000);
+    // Extract cookies from response
+    const setCookie = loginResp.headers()['set-cookie'];
+    console.log('Set-Cookie:', setCookie);
     
-    // Log what URL we're on
-    console.log('Current URL:', page.url());
+    // Now set the cookie manually on the browser context and navigate
+    if (setCookie) {
+      const cookieStr = setCookie.split(';')[0];
+      const [name, value] = cookieStr.split('=');
+      await page.context().addCookies([{
+        name,
+        value,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: true,
+        sameSite: 'Strict',
+      }]);
+    }
     
-    // Check the page content
-    const content = await page.content();
-    console.log('Page content length:', content.length);
-    console.log('Page title:', await page.title());
+    await page.goto('/dashboard');
+    console.log('Final URL:', page.url());
+    await expect(page.locator('body')).toContainText('Simple', { timeout: 5000 });
   });
 
   test('user can login with password', async ({ page }) => {
