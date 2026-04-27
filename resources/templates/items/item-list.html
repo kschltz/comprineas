@@ -1,0 +1,6 @@
+{% for item in items %}
+  {% include "items/item-row.html" %}
+{% endfor %}
+{% if not items %}
+  <div class="p-8 text-center text-gray-500">No items yet.</div>
+{% endif %}

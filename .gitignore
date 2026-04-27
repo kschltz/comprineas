@@ -1,0 +1,14 @@
+/target
+/.cpcache
+/.nrepl-port
+/*.jar
+/*.class
+/.lein-*
+/.cljs_*_repl
+/out
+/resources/public/js
+/.pi
+/_apalache-out
+/tmp
+/graphify-out
+/.subagent-critiques

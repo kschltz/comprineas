@@ -34,10 +34,12 @@ The data model must support:
 
 Separate tables for each entity with foreign-key constraints.
 
-- `lists`: id SERIAL PRIMARY KEY, code VARCHAR(32) UNIQUE NOT NULL, name VARCHAR(255), status VARCHAR(20) CHECK (status IN ('active','completed')), version INTEGER DEFAULT 1, created_by INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TIMESTAMPTZ DEFAULT now(), completed_at TIMESTAMPTZ, updated_at TIMESTAMPTZ DEFAULT now()
+- `lists`: id SERIAL PRIMARY KEY, code VARCHAR(6) UNIQUE NOT NULL, name VARCHAR(100), status VARCHAR(20) CHECK (status IN ('active','completed','deleted')), version INTEGER DEFAULT 1, created_by INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TIMESTAMPTZ DEFAULT now(), completed_at TIMESTAMPTZ, updated_at TIMESTAMPTZ DEFAULT now()
 - `list_items`: id SERIAL PRIMARY KEY, list_id INTEGER NOT NULL REFERENCES lists(id) ON DELETE CASCADE, name VARCHAR(255) NOT NULL, quantity VARCHAR(50), observations TEXT, checked BOOLEAN DEFAULT false, position INTEGER NOT NULL, created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now()
+  ￫ observations has a 2000-character application-level limit (PRD-0005)
 - `list_participants`: id SERIAL PRIMARY KEY, list_id INTEGER NOT NULL REFERENCES lists(id) ON DELETE CASCADE, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, joined_at TIMESTAMPTZ DEFAULT now()
-- `completed_lists`: id SERIAL PRIMARY KEY, original_list_id INTEGER REFERENCES lists(id) ON DELETE SET NULL, code VARCHAR(32), name VARCHAR(255), completed_at TIMESTAMPTZ, archived_data JSONB
+- `completed_lists`: id SERIAL PRIMARY KEY, original_list_id INTEGER REFERENCES lists(id) ON DELETE SET NULL, code VARCHAR(6), name VARCHAR(100), completed_at TIMESTAMPTZ, archived_data JSONB
+  ￫ archived_data schema: JSONB array of {name, quantity, observations, checked, position} objects (PRD-0006)
 
 **Concurrency strategy:** Item mutations (add, check, delete items) do **not** increment `lists.version`; they use **last-write-wins** since concurrent edits to different items are compatible and overwriting the same item's checked state is acceptable UX. List metadata changes (rename, complete, delete) **do** increment `lists.version` and use optimistic locking (`UPDATE lists SET ... WHERE id = ? AND version = ?`).
 

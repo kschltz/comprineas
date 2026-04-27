@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Lists — Comprineas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen" hx-ext="sse" hx-sse="connect:/dashboard/events">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="/dashboard" class="text-xl font-bold text-indigo-600 hover:text-indigo-700">
+                Comprineas
+            </a>
+            <div class="flex items-center gap-4 text-sm text-gray-600">
+                <span>Hi, {{user.display_name}}</span>
+                <form action="/logout" method="post" class="inline">
+                    <button type="submit" class="text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-3 py-1 text-sm">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <!-- Page Heading -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">My Lists</h1>
+
+        <!-- Create & Join Panel -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+
+            <!-- Create New List -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Create a New List</h2>
+                <form hx-post="/lists" hx-target="body" class="flex gap-3">
+                    <input type="text" name="name" required
+                           placeholder="Shopping list name"
+                           maxlength="100"
+                           class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-md text-sm transition-colors whitespace-nowrap">
+                        Create List
+                    </button>
+                </form>
+            </div>
+
+            <!-- Join Existing List -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Join an Existing List</h2>
+                <div id="join-form-area">
+                    <form hx-post="/join"
+                          hx-target="#join-form-area"
+                          hx-swap="outerHTML"
+                          class="flex gap-3">
+                        <input type="text" name="code" required
+                               maxlength="6"
+                               placeholder="Enter share code"
+                               autocomplete="off" autocapitalize="off"
+                               class="flex-1 tracking-widest border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase">
+                        <button type="submit"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-md text-sm transition-colors whitespace-nowrap">
+                            Join
+                        </button>
+                    </form>
+                    {% if error %}
+                    <p class="text-red-600 text-sm mt-2" role="alert">{{error}}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Lists Section -->
+        <div class="mb-10">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Active Lists</h2>
+            {% if active-lists|empty? %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                <p class="text-gray-500 text-sm">No active lists yet. Create one or join one above!</p>
+            </div>
+            {% else %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for list in active-lists %}
+                <a href="/list/{{list.code}}"
+                   class="block bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md hover:border-indigo-300 transition-all group">
+                    <h3 class="font-semibold text-gray-900 group-hover:text-indigo-600 mb-2 truncate">
+                        {{list.name}}
+                    </h3>
+                    <div class="flex items-center gap-3 text-sm text-gray-500 mb-1">
+                        <span class="bg-gray-100 text-gray-600 font-mono text-xs px-2 py-0.5 rounded">
+                            {{list.code}}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">
+                        Created {{list.created_at}}
+                    </p>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Past (Completed) Lists Section -->
+        {% if completed-lists|not-empty? %}
+        <div class="mb-10">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Past Lists</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for list in completed-lists %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 opacity-75">
+                    <h3 class="font-semibold text-gray-600 mb-2 truncate">{{list.name}}</h3>
+                    <div class="flex items-center gap-3 text-sm text-gray-400 mb-3">
+                        <span class="bg-gray-100 text-gray-500 font-mono text-xs px-2 py-0.5 rounded">
+                            {{list.code}}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">
+                        Completed {{list.completed_at}}
+                    </p>
+                    <button hx-get="/list/{{list.code}}/copy"
+                            hx-target="body"
+                            class="text-indigo-600 hover:text-indigo-700 text-sm font-medium bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-md transition-colors">
+                        Copy as New List
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SSE: reload dashboard on new list created elsewhere -->
+        <div hx-trigger="sse:list-created"
+             hx-get="/dashboard"
+             hx-target="body"
+             hx-swap="outerHTML">
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-xs text-gray-400">
+            Comprineas — shared grocery lists, made simple.
+        </footer>
+    </div>
+
+</body>
+</html>

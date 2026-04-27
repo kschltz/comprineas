@@ -1,0 +1,26 @@
+<div id="join-form-area">
+  <form hx-post="/join"
+        hx-target="#join-form-area"
+        class="flex items-center gap-2">
+    <label for="join-code" class="sr-only">Share code</label>
+    <input type="text"
+           id="join-code"
+           name="code"
+           maxlength="6"
+           placeholder="Enter share code"
+           autocomplete="off"
+           autocapitalize="off"
+           inputmode="text"
+           required
+           class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border text-center tracking-widest">
+    <button type="submit"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      Join
+    </button>
+  </form>
+  {% if error %}
+  <div role="alert" class="mt-2 text-sm text-red-600">
+    {{ error }}
+  </div>
+  {% endif %}
+</div>

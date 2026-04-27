@@ -1,0 +1,7 @@
+{:server   {:port #long #or [#env PORT 3000]
+            :join? false}
+ :db       {:jdbcUrl #or [#env DATABASE_URL
+                          "jdbc:postgresql://localhost:5432/comprineas?user=comprineas&password=comprineas"]}
+ :secrets  {:hmac #or [#env HMAC_SECRET "dev-hmac-secret-change-me"]
+            :session #or [#env SESSION_SECRET "dev-session-secret-change-me"]}
+ :email    {:stub? true}}

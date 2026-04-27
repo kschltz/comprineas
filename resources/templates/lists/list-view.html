@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{list.name}} — Comprineas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen" hx-ext="sse" hx-sse="connect:/list/{{list.code}}/events">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="/dashboard" class="text-xl font-bold text-indigo-600 hover:text-indigo-700">
+                Comprineas
+            </a>
+            <div class="flex items-center gap-4 text-sm text-gray-600">
+                <span>Hi, {{user.display_name}}</span>
+                <form action="/logout" method="post" class="inline">
+                    <button type="submit" class="text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-3 py-1 text-sm">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <div class="lg:grid lg:grid-cols-3 lg:gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- List Header -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <h1 class="text-2xl font-bold text-gray-900 mb-2"
+                                id="list-name"
+                                contenteditable="true"
+                                hx-post="/list/{{list.code}}/rename"
+                                hx-trigger="blur"
+                                hx-vals="js:{name: document.getElementById('list-name').innerText.trim()}"
+                                hx-target="#list-name"
+                                hx-swap="innerHTML">
+                                {{list.name}}
+                            </h1>
+                            <p class="text-sm text-gray-500">
+                                {% if is-creator? %}
+                                Created by you
+                                {% else %}
+                                Shared list
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">Code:</span>
+                            <button onclick="copyCode('{{list.code}}')"
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono text-sm px-3 py-1.5 rounded-md border border-gray-300 transition-colors"
+                                    title="Copy share code">
+                                {{list.code}}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Item Form -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Add an Item</h2>
+                    <form hx-post="/list/{{list.code}}/items"
+                          hx-target="#item-list"
+                          hx-swap="beforeend"
+                          hx-on::after-request="if(event.detail.successful) { this.reset(); }">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                                <input type="text" name="name" required
+                                       placeholder="Item name"
+                                       maxlength="255"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                                <input type="text" name="quantity"
+                                       placeholder="1 kg"
+                                       maxlength="50"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Observations</label>
+                                <input type="text" name="observations"
+                                       placeholder="notes"
+                                       maxlength="2000"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div id="add-item-error" class="text-red-600 text-sm mb-2 hidden"></div>
+                        <button type="submit"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-md text-sm transition-colors">
+                            Add Item
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Item List -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="p-6 pb-3">
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            Items
+                            <span class="text-sm text-gray-500 font-normal ml-2">
+                                ({% if items %}{{items|length}}{% else %}0{% endif %})
+                            </span>
+                        </h2>
+                    </div>
+                    <div id="item-list"
+                         hx-get="/list/{{list.code}}/items-list"
+                         hx-trigger="load"
+                         class="px-6 pb-6">
+                        <p class="text-gray-400 text-sm">Loading items…</p>
+                    </div>
+                </div>
+
+                <!-- Complete List Button -->
+                <div class="text-right">
+                    <button hx-post="/list/{{list.code}}/complete"
+                            hx-confirm="Are you sure you want to complete this list? It will be moved to past lists."
+                            class="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2.5 rounded-md text-sm transition-colors">
+                        ✓ Complete List
+                    </button>
+                </div>
+
+                <!-- SSE event handlers -->
+                <div hx-sse="swap:item-added" hx-swap-oob="true"></div>
+                <div hx-sse="swap:item-updated" hx-swap-oob="true"></div>
+                <div hx-sse="swap:item-deleted" hx-swap-oob="true"></div>
+                <div hx-sse="swap:list-updated" hx-swap-oob="true"></div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-4 mt-6 lg:mt-0">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Share List</h3>
+                    <p class="text-sm text-gray-500 mb-2">
+                        Share this code with anyone you want to collaborate with:
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <code class="bg-gray-100 text-gray-800 font-mono text-lg px-4 py-2 rounded-md flex-1 text-center">
+                            {{list.code}}
+                        </code>
+                        <button onclick="copyCode('{{list.code}}')"
+                                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-md text-sm transition-colors"
+                                title="Copy to clipboard">
+                            📋
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Participants</h3>
+                    <p class="text-2xl font-bold text-indigo-600">
+                        {{participants|length}}
+                    </p>
+                    <p class="text-sm text-gray-500">people have joined this list</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                    <a href="/dashboard"
+                       class="flex items-center gap-2 text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        ← Back to My Lists
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(function() {
+                // Brief visual feedback could go here
+            }).catch(function() {
+                // Fallback for older browsers
+                var el = document.createElement('textarea');
+                el.value = code;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+            });
+        }
+    </script>
+</body>
+</html>

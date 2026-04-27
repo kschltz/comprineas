@@ -16,35 +16,17 @@ A real-time shared grocery & shopping list application. Collaborate with family 
 
 ---
 
-## Core Features (Planned)
+## Core Features
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  AUTH: Log in with email                                    │
-│  ├─ Password-based (bcrypt, session cookies)              │
-│  └─ Magic link (HMAC-signed, 15-min expiry)               │
-├─────────────────────────────────────────────────────────────┤
-│  LIST: Create a shared list                                 │
-│  ├─ Generates a human-readable code                         │
-│  └─ Code is the join key — flat access, no ownership        │
-├─────────────────────────────────────────────────────────────┤
-│  LIST: Join by code                                         │
-│  └─ Anyone with the code has full access                    │
-├─────────────────────────────────────────────────────────────┤
-│  ITEM: Add / check / delete                                 │
-│  ├─ Name, quantity ("1 kg", "a few"), observations          │
-│  ├─ Checked items grayed out, pushed to bottom            │
-│  └─ Instant SSE sync to all viewers                         │
-├─────────────────────────────────────────────────────────────┤
-│  LIST: Complete / archive                                   │
-│  ├─ "Complete" manually — copies to `completed_lists`     │
-│  ├─ Past lists viewable and copyable                        │
-│  └─ Original `list_items` rows retained for live queries    │
-├─────────────────────────────────────────────────────────────┤
-│  "My Lists" dashboard                                       │
-│  └─ Lists I created / joined, active and past               │
-└─────────────────────────────────────────────────────────────┘
-```
+| # | Feature | Status |
+|---|---------|--------|
+| 0001 | Magic Link Auth | ✅ Implemented |
+| 0002 | Password Auth | ✅ Implemented |
+| 0003 | Create Shared List | ✅ Implemented |
+| 0004 | Join List by Code | ✅ Implemented |
+| 0005 | Add / Check / Delete Items | ✅ Implemented |
+| 0006 | Complete & Copy Lists | ✅ Implemented |
+| 0007 | My Lists Dashboard | 📝 PRD drafted |
 
 ---
 
@@ -90,9 +72,34 @@ This project follows a **specification-first** discipline. **No code is written 
 ```
 .
 ├── README.md                 # ← You are here
-├── AGENTS.md               # Binding rules for all agents
+├── AGENTS.md                 # Binding rules for all agents
+├── deps.edn                  # Clojure dependencies
+├── resources/
+│   ├── config.edn            # Aero application config
+│   ├── migrations/
+│   │   ├── 001-init-auth.sql
+│   │   ├── 002-password-auth.sql
+│   │   └── 003-shared-lists.sql
+│   ├── system.edn            # Integrant system config
+│   └── templates/
+│       ├── auth/
+│       │   ├── display-name.html
+│       │   ├── email-sent.html
+│       │   ├── error.html
+│       │   ├── forgot-password.html
+│       │   ├── forgot-password-sent.html
+│       │   ├── login.html
+│       │   ├── register.html
+│       │   ├── reset-password.html
+│       │   └── set-password.html
+│       ├── items/
+│       │   ├── item-list.html
+│       │   └── item-row.html
+│       └── lists/
+│           ├── copy-modal.html
+│           └── join-form.html
 ├── docs/
-│   ├── adr/               # Architecture Decision Records (MADR)
+│   ├── adr/                  # Architecture Decision Records (MADR)
 │   │   ├── 0001-use-kit-clj.md
 │   │   ├── 0002-use-postgresql.md
 │   │   ├── 0003-data-model-and-schema-design.md
@@ -100,12 +107,58 @@ This project follows a **specification-first** discipline. **No code is written 
 │   │   ├── 0005-use-tailwind-css-for-styling.md
 │   │   ├── 0006-real-time-delivery-strategy.md
 │   │   └── 0007-authentication-strategy.md
-│   ├── prd/               # Product Requirements Documents (PRD)
-│   │   # (empty — features not yet specified)
-│   ├── specs/             # Quint state-machine specifications
-│   │   # (empty — specs not yet written)
-│   └── templates/         # Templates for ADR, PRD, Quint spec
-├── src/                   # Source code (ONLY after spec proven)
+│   ├── prd/                  # Product Requirements Documents (PRD)
+│   │   ├── 0001-magic-link-auth.md
+│   │   ├── 0002-password-authentication.md
+│   │   ├── 0003-shared-lists.md
+│   │   ├── 0004-join-list-by-code.md
+│   │   ├── 0005-list-items.md
+│   │   └── 0006-copy-completed-list.md
+│   ├── specs/                # Quint state-machine specifications
+│   │   ├── 0001-magic-link-auth.md
+│   │   ├── 0001-magic-link-auth.qnt
+│   │   ├── 0002-password-authentication.md
+│   │   ├── 0002-password-authentication.qnt
+│   │   ├── 0003-shared-lists.md
+│   │   ├── 0003-shared-lists.qnt
+│   │   ├── 0004-join-list-by-code.md
+│   │   ├── 0004-join-list-by-code.qnt
+│   │   ├── 0005-list-items.md
+│   │   ├── 0005-list-items.qnt
+│   │   ├── 0006-copy-completed-list.md
+│   │   └── 0006-copy-completed-list.qnt
+│   └── templates/            # Templates for ADR, PRD, Quint spec
+├── src/                      # Source code
+│   └── comprineas/
+│       ├── config.clj
+│       ├── core.clj
+│       ├── db/
+│       │   ├── core.clj
+│       │   └── migrations.clj
+│       ├── auth/
+│       │   ├── cleanup.clj
+│       │   ├── handlers.clj
+│       │   ├── mailer.clj
+│       │   ├── middleware.clj
+│       │   ├── password.clj
+│       │   ├── rate_limit.clj
+│       │   ├── reset_tokens.clj
+│       │   ├── sessions.clj
+│       │   ├── tokens.clj
+│       │   └── users.clj
+│       ├── items/
+│       │   ├── db.clj
+│       │   └── handlers.clj
+│       ├── lists/
+│       │   ├── codes.clj
+│       │   ├── copy.clj
+│       │   ├── db.clj
+│       │   ├── handlers.clj
+│       │   ├── join.clj
+│       │   └── sse.clj
+│       └── web/
+│           ├── routes.clj
+│           └── server.clj
 └── ...
 ```
 
@@ -127,12 +180,20 @@ This project follows a **specification-first** discipline. **No code is written 
 
 ## Current Status
 
-**Phase: Architecture complete. Feature specification pending.**
+**Phase: Wire-up and Dashboard in progress — Features 0001–0006.**
 
 - ✅ All foundational ADRs accepted (7/7)
-- ⏳ PRDs to write: "Create shared list" (PRD-0001), "Join list by code", "Add/check item", "Complete list", etc.
-- ⏳ Quint specs to prove: one per PRD, `typecheck → test → run → verify`
-- ⏳ Code: none yet — gated by PRD + Quint + proof
+- ✅ PRD-0001: Magic Link Authentication — accepted, spec proven, **code implemented**
+- ✅ PRD-0002: Password Authentication — accepted, spec proven, **code implemented**
+- ✅ PRD-0003: Shared Lists — accepted, spec proven, **code implemented**
+- ✅ PRD-0004: Join List by Code — accepted, spec proven, **code implemented**
+- ✅ PRD-0005: List Items — accepted, spec proven, **code implemented**
+- ✅ PRD-0006: Copy Completed List — accepted, spec proven, **code implemented**
+- 🚧 Route wiring: list/item routes being connected to handlers
+- 🚧 Templates: list-view.html and dashboard.html being created
+- ⏳ PRD-0007: My Lists Dashboard — writing phase
+- ⏳ Spec-0007: My Lists Dashboard — pending PRD completion
+- ⏳ Dashboard SSE handler — pending
 
 ---
 
