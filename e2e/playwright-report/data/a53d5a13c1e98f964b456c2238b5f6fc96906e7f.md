@@ -34,11 +34,11 @@ Received has value: null
     - generic [ref=e11]:
       - generic [ref=e13]:
         - generic [ref=e14]:
-          - heading "Team List 1777317037538" [level=1] [ref=e15]
+          - heading "Team List 1777317087501" [level=1] [ref=e15]
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "ODA9WD" [ref=e19] [cursor=pointer]
+          - button "8AOQRZ" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -62,7 +62,7 @@ Received has value: null
         - heading "Share List" [level=3] [ref=e43]
         - paragraph [ref=e44]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e45]:
-          - code [ref=e46]: ODA9WD
+          - code [ref=e46]: 8AOQRZ
           - button "📋" [ref=e47] [cursor=pointer]
       - generic [ref=e48]:
         - heading "Participants" [level=3] [ref=e49]
@@ -142,59 +142,66 @@ Received has value: null
   65  |   await registerAndLogin(page, emailA, 'testpass123', 'Alice');
   66  |   await createListOnDashboard(page, listName);
   67  |   
-  68  |   // Extract the list code from hx-post attributes in the page
+  68  |   // Extract the list code — try multiple patterns
   69  |   const pageContent = await page.content();
-  70  |   const m = pageContent.match(/complete\/([a-z0-9]{6})/);
-  71  |   const listCode = m ? m[1] : null;
-> 72  |   expect(listCode).toMatch(/^[a-z0-9]{6}$/);
+  70  |   console.log('Page content contains hx-post:', pageContent.includes('hx-post'));
+  71  |   console.log('Page URL:', page.url());
+  72  |   // Try copyCode pattern from the code display button
+  73  |   let m = pageContent.match(/copyCode\('([a-z0-9]{6})'\)/);
+  74  |   if (!m) m = pageContent.match(/complete\/([a-z0-9]{6})/);
+  75  |   if (!m) m = pageContent.match(/\/list\/([a-z0-9]{6})/);
+  76  |   if (!m) m = pageContent.match(/">([a-z0-9]{6})<\/button>/);
+  77  |   const listCode = m ? m[1] : null;
+  78  |   console.log('Extracted code:', listCode);
+> 79  |   expect(listCode).toMatch(/^[a-z0-9]{6}$/);
       |                    ^ TypeError: expect(received).toMatch(expected)
-  73  | 
-  74  |   // Logout User A
-  75  |   await logoutFromBrowser(page);
-  76  | 
-  77  |   // User B: register, join by code
-  78  |   await registerAndLogin(page, emailB, 'testpass456', 'Bob');
-  79  | 
-  80  |   await page.fill('input[name="code"]', listCode);
-  81  |   await page.click('button:has-text("Join")');
-  82  |   // HTMX swaps body, URL stays /dashboard — wait for list content
-  83  |   await expect(page.locator('#list-name')).toContainText(listName, { timeout: 10000 });
-  84  | 
-  85  |   await expect(page.locator('#list-name')).toContainText(listName);
-  86  | });
-  87  | 
-  88  | // ──────────────────────────────────────────────────────────
-  89  | // PRD-0003 + PRD-0006: Complete a list (archive to past lists)
-  90  | // ──────────────────────────────────────────────────────────
+  80  | 
+  81  |   // Logout User A
+  82  |   await logoutFromBrowser(page);
+  83  | 
+  84  |   // User B: register, join by code
+  85  |   await registerAndLogin(page, emailB, 'testpass456', 'Bob');
+  86  | 
+  87  |   await page.fill('input[name="code"]', listCode);
+  88  |   await page.click('button:has-text("Join")');
+  89  |   // HTMX swaps body, URL stays /dashboard — wait for list content
+  90  |   await expect(page.locator('#list-name')).toContainText(listName, { timeout: 10000 });
   91  | 
-  92  | test('PRD-0003/0006: Complete a list and see it in past lists', async ({ page }) => {
-  93  |   const email = uniqueEmail('complete');
-  94  |   const listName = `Trip to Store ${Date.now()}`;
-  95  | 
-  96  |   await registerAndLogin(page, email, 'testpass123', 'Charlie');
-  97  |   await createListOnDashboard(page, listName);
+  92  |   await expect(page.locator('#list-name')).toContainText(listName);
+  93  | });
+  94  | 
+  95  | // ──────────────────────────────────────────────────────────
+  96  | // PRD-0003 + PRD-0006: Complete a list (archive to past lists)
+  97  | // ──────────────────────────────────────────────────────────
   98  | 
-  99  |   // Accept the hx-confirm dialog
-  100 |   page.on('dialog', async (dialog) => { await dialog.accept(); });
-  101 |   await page.click('button:has-text("Complete List")');
-  102 |   // HTMX handles redirect, swaps body — wait for dashboard content
-  103 |   await expect(page.locator('h1').first()).toContainText('My Lists', { timeout: 10000 });
-  104 | 
-  105 |   // Assert "Past Lists" heading is visible and list name appears
-  106 |   await expect(page.locator('h2:has-text("Past Lists")')).toBeVisible();
-  107 |   await expect(page.locator('text=Trip to Store').first()).toBeVisible();
-  108 | });
-  109 | 
-  110 | // ──────────────────────────────────────────────────────────
-  111 | // PRD-0004: Navigate to non-existent list shows error
-  112 | // ──────────────────────────────────────────────────────────
-  113 | 
-  114 | test('PRD-0004: Navigate to a non-existent list shows error', async ({ page }) => {
-  115 |   const email = uniqueEmail('notfound');
-  116 |   await registerAndLogin(page, email, 'testpass123', 'Diana');
-  117 | 
-  118 |   await page.goto('/list/ZZZZZZ');
-  119 |   await expect(page.locator('body')).toContainText(/List not found/i);
-  120 | });
-  121 | 
+  99  | test('PRD-0003/0006: Complete a list and see it in past lists', async ({ page }) => {
+  100 |   const email = uniqueEmail('complete');
+  101 |   const listName = `Trip to Store ${Date.now()}`;
+  102 | 
+  103 |   await registerAndLogin(page, email, 'testpass123', 'Charlie');
+  104 |   await createListOnDashboard(page, listName);
+  105 | 
+  106 |   // Accept the hx-confirm dialog
+  107 |   page.on('dialog', async (dialog) => { await dialog.accept(); });
+  108 |   await page.click('button:has-text("Complete List")');
+  109 |   // HTMX handles redirect, swaps body — wait for dashboard content
+  110 |   await expect(page.locator('h1').first()).toContainText('My Lists', { timeout: 10000 });
+  111 | 
+  112 |   // Assert "Past Lists" heading is visible and list name appears
+  113 |   await expect(page.locator('h2:has-text("Past Lists")')).toBeVisible();
+  114 |   await expect(page.locator('text=Trip to Store').first()).toBeVisible();
+  115 | });
+  116 | 
+  117 | // ──────────────────────────────────────────────────────────
+  118 | // PRD-0004: Navigate to non-existent list shows error
+  119 | // ──────────────────────────────────────────────────────────
+  120 | 
+  121 | test('PRD-0004: Navigate to a non-existent list shows error', async ({ page }) => {
+  122 |   const email = uniqueEmail('notfound');
+  123 |   await registerAndLogin(page, email, 'testpass123', 'Diana');
+  124 | 
+  125 |   await page.goto('/list/ZZZZZZ');
+  126 |   await expect(page.locator('body')).toContainText(/List not found/i);
+  127 | });
+  128 | 
 ```

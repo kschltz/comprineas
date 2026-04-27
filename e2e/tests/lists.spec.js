@@ -27,9 +27,12 @@ async function registerAndLogin(page, email, password, displayName) {
 
 async function createListOnDashboard(page, name) {
   await page.fill('input[name="name"]', name);
+  console.log('Filled name, clicking Create List...');
   await page.click('button:has-text("Create List")');
   // HTMX swaps body, no URL change — wait for list page content
+  console.log('Waiting for #list-name...');
   await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
+  console.log('createListOnDashboard done, URL:', page.url());
 }
 
 async function logoutFromBrowser(page) {
