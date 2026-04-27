@@ -10,17 +10,18 @@ async function register(page, email, password, displayName) {
   await page.fill('input[name="password"]', password);
   await page.fill('input[name="display_name"]', displayName);
   await page.click('button[type="submit"]');
-  // post-register redirects to /, which has no route;
-  // wait for navigation to settle then check we ended up somewhere valid
-  await page.waitForTimeout(500);
+  // post-register redirects to / (no route), then browser lands on 404.
+  // Wait for redirects to settle, then navigate to dashboard.
+  await page.waitForURL('**/', { timeout: 5000 }).catch(() => {});
 }
 
 async function login(page, email, password) {
   await page.goto('/login');
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard');
+  // Target the password form specifically (there are 2 email inputs on the page)
+  await page.fill('#form-password input[name="email"]', email);
+  await page.fill('#form-password input[name="password"]', password);
+  await page.click('#form-password button[type="submit"]');
+  await page.waitForURL('**/dashboard', { timeout: 10000 });
 }
 
 test.describe('Authentication', () => {
@@ -28,9 +29,13 @@ test.describe('Authentication', () => {
   test('user can register', async ({ page }) => {
     const email = uniqueEmail('reg');
     await register(page, email, 'password123', 'Reggie');
-    // After registration, app should land on dashboard or redirect there
+    // After registration, user has session cookie set via redirect.
+    // Navigate to dashboard — should be authenticated.
     await page.goto('/dashboard');
-    await expect(page.locator('body')).toContainText('Hi, Reggie');
+    // If still on login, the session wasn't set — log cookies for debugging
+    const cookies = await page.context().cookies();
+    console.log('Cookies:', JSON.stringify(cookies.map(c => c.name)));
+    await expect(page.locator('body')).toContainText('Hi, Reggie', { timeout: 5000 });
   });
 
   test('user can login with password', async ({ page }) => {
