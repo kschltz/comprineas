@@ -123,6 +123,7 @@
                 <!-- Complete List Button -->
                 <div class="text-right">
                     <button hx-post="/list/{{list.code}}/complete"
+                            hx-target="body"
                             hx-confirm="Are you sure you want to complete this list? It will be moved to past lists."
                             class="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2.5 rounded-md text-sm transition-colors">
                         ✓ Complete List

@@ -19,12 +19,14 @@
   [{:keys [db current-user]}]
   (if-not (:id current-user)
     (resp/redirect "/login" :see-other)
-    (let [lists (db/user-lists db (:id current-user))]
+    (let [lists (db/user-lists db (:id current-user))
+          active-lists  (seq (filterv #(= "active" (:status %)) lists))
+          completed-lists (seq (filterv #(= "completed" (:status %)) lists))]
       (-> (selmer/render-file "lists/dashboard.html"
                               {:user       current-user
                                :lists      lists
-                               :active-lists  (filterv #(= "active" (:status %)) lists)
-                               :completed-lists (filterv #(= "completed" (:status %)) lists)})
+                               :active-lists  active-lists
+                               :completed-lists completed-lists})
           (resp/response)
           (resp/content-type "text/html")))))
 

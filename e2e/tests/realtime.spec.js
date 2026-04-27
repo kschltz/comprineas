@@ -18,14 +18,23 @@ async function registerAndLogin(page, email, password, displayName) {
 async function createListAndWait(page, name) {
   await page.fill('input[name="name"]', name);
   await page.click('text=Create List');
-  // HTMX swaps body — wait for list content
+  // HTMX swaps body — wait for list content to appear
   await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
+  // Also wait for the complete button to be rendered
+  await expect(page.locator('button:has-text("Complete List")')).toBeVisible({ timeout: 5000 });
 }
 
 async function extractListCode(page) {
-  // Find the code displayed in the list view (it appears in href attributes)
+  // Try to find the list code from various places in the HTML
   const body = await page.content();
-  const m = body.match(/complete\/([a-z0-9]{6})/);
+  // Try hx-post attribute on complete button
+  let m = body.match(/complete\/([a-z0-9]{6})/);
+  if (m) return m[1];
+  // Try code display button text (6-char alphanumeric)
+  m = body.match(/copyCode\('([a-z0-9]{6})'\)/);
+  if (m) return m[1];
+  // Try href on list cards
+  m = body.match(/\/list\/([a-z0-9]{6})/);
   return m ? m[1] : null;
 }
 

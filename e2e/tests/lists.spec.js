@@ -65,10 +65,10 @@ test('PRD-0004: Join an existing list by code', async ({ page }) => {
   await registerAndLogin(page, emailA, 'testpass123', 'Alice');
   await createListOnDashboard(page, listName);
   
-  // Extract the list code from the page content
+  // Extract the list code from hx-post attributes in the page
   const pageContent = await page.content();
-  const match = pageContent.match(/\/list\/([a-z0-9]{6})/g);
-  const listCode = match ? match[0].split('/list/')[1] : null;
+  const m = pageContent.match(/complete\/([a-z0-9]{6})/);
+  const listCode = m ? m[1] : null;
   expect(listCode).toMatch(/^[a-z0-9]{6}$/);
 
   // Logout User A
@@ -100,7 +100,7 @@ test('PRD-0003/0006: Complete a list and see it in past lists', async ({ page })
   page.on('dialog', async (dialog) => { await dialog.accept(); });
   await page.click('button:has-text("Complete List")');
   // HTMX handles redirect, swaps body — wait for dashboard content
-  await expect(page.locator('h1')).toContainText('My Lists', { timeout: 10000 });
+  await expect(page.locator('h1').first()).toContainText('My Lists', { timeout: 10000 });
 
   // Assert "Past Lists" heading is visible and list name appears
   await expect(page.locator('h2:has-text("Past Lists")')).toBeVisible();

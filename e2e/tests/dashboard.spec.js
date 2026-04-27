@@ -42,9 +42,7 @@ test.describe('PRD-0007 — My Lists Dashboard', () => {
   test('3. Empty state for new users', async ({ page }) => {
     const email = uniqueEmail('dash3');
     await registerAndLogin(page, email, 'password123', 'EmptyUser');
-    // The empty state shows "No active lists yet" or a similar message
-    const bodyText = await page.textContent('body');
-    console.log('Body text:', bodyText.substring(0, 500));
+    // Selmer treats empty vectors as truthy; handler now passes nil for empty lists
     await expect(page.locator('body')).toContainText('No active lists');
   });
 
@@ -60,7 +58,7 @@ test.describe('PRD-0007 — My Lists Dashboard', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.click('text=Complete List');
     // HTMX handles redirect, swaps body — wait for dashboard content
-    await expect(page.locator('h1')).toContainText('My Lists', { timeout: 10000 });
+    await expect(page.locator('h1').first()).toContainText('My Lists', { timeout: 10000 });
 
     await expect(page.getByText('Active Lists')).toBeVisible();
     await expect(page.getByText('Past Lists')).toBeVisible();
