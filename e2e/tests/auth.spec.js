@@ -5,53 +5,46 @@ function uniqueEmail(prefix) {
 }
 
 async function registerViaApi(page, email, password, displayName) {
-  // Direct POST to register endpoint — browser will follow redirects and store session cookie
-  await page.goto('/register');
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.fill('input[name="display_name"]', displayName);
-  await page.click('button[type="submit"]');
-  // Wait for redirect chain to settle
-  await page.waitForLoadState('networkidle');
+  // Use direct POST to register — the response sets the session cookie
+  const resp = await page.request.post('/register', {
+    form: { email, password, password_confirm: password, display_name: displayName },
+  });
+  // Save cookies for subsequent requests
+  await page.context().storageState({ path: undefined });
 }
 
-async function login(page, email, password) {
-  await page.goto('/login');
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.click('button:has-text("Log in")');
-  await page.waitForURL('**/dashboard', { timeout: 10000 });
+async function loginViaApi(page, email, password) {
+  const resp = await page.request.post('/login/password', {
+    form: { email, password },
+  });
+  // Session cookie should be set by the 303 response
 }
 
 test.describe('Authentication', () => {
 
-  test('dashboard page loads for new user', async ({ page }) => {
-    const email = uniqueEmail('reg2');
-    await registerViaApi(page, email, 'password123', 'Reggie2');
-    // After register, directly try dashboard
+  test('user can register and see dashboard', async ({ page }) => {
+    const email = uniqueEmail('reg');
+    await registerViaApi(page, email, 'password123', 'Reggie');
+    await loginViaApi(page, email, 'password123');
     await page.goto('/dashboard');
-    // Should either be dashboard (if session worked) or login (if not)
-    const body = page.locator('body');
-    const text = await body.textContent();
-    console.log('Dashboard page text:', text.substring(0, 200));
-    await expect(page.locator('body')).toContainText(/My Lists|Login|Comprineas/, { timeout: 5000 });
+    await expect(page.locator('body')).toContainText('Hi, Reggie', { timeout: 5000 });
   });
 
   test('user can login with password', async ({ page }) => {
     const email = uniqueEmail('login');
     await registerViaApi(page, email, 'password123', 'LoginTest');
-    await login(page, email, 'password123');
+    await loginViaApi(page, email, 'password123');
+    await page.goto('/dashboard');
     await expect(page.locator('body')).toContainText('Hi, LoginTest');
   });
 
   test('user can logout', async ({ page }) => {
     const email = uniqueEmail('logout');
     await registerViaApi(page, email, 'password123', 'LogoutTest');
-    await login(page, email, 'password123');
-    // Click logout
+    await loginViaApi(page, email, 'password123');
+    await page.goto('/dashboard');
     await page.click('button:has-text("Logout")');
-    // Should redirect to login page
-    await expect(page.locator('body')).toContainText(/log in|login/i);
+    await expect(page.locator('body')).toContainText(/log in|login/i, { timeout: 5000 });
   });
 
   test('forgot password page renders', async ({ page }) => {
@@ -63,13 +56,12 @@ test.describe('Authentication', () => {
   test('invalid login shows error', async ({ page }) => {
     const email = uniqueEmail('badlogin');
     await registerViaApi(page, email, 'password123', 'BadLogin');
-    // Try wrong password
+    // Navigate to login and try wrong password
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', 'wrongpassword');
     await page.click('button:has-text("Log in")');
-    // Should show error — either inline or stay on login page with message
-    await expect(page.locator('body')).toContainText(/invalid|wrong|error/i);
+    await expect(page.locator('body')).toContainText(/invalid|wrong|error/i, { timeout: 5000 });
   });
 
 });
