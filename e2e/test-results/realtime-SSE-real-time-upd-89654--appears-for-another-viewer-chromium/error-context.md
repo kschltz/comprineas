@@ -44,7 +44,7 @@ Call log:
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "8FBEKX" [ref=e19] [cursor=pointer]
+          - button "UQFGG2" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -74,7 +74,7 @@ Call log:
         - heading "Share List" [level=3] [ref=e49]
         - paragraph [ref=e50]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e51]:
-          - code [ref=e52]: 8FBEKX
+          - code [ref=e52]: UQFGG2
           - button "📋" [ref=e53] [cursor=pointer]
       - generic [ref=e54]:
         - heading "Participants" [level=3] [ref=e55]

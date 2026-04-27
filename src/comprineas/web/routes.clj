@@ -100,7 +100,11 @@
                         (auth-mw/wrap-auth db))]
     ;; Route requests: SSE paths go to sse-handler, everything else to main-handler
     (fn [req]
-      (if (or (= (:uri req) "/dashboard/events")
-              (re-matches #"/list/[A-Za-z0-9]+/events" (:uri req)))
-        (sse-handler req)
-        (main-handler req)))))
+      (let [uri (:uri req)]
+        (when (or (= uri "/dashboard/events")
+                  (re-matches #"/list/[A-Za-z0-9]+/events" uri))
+          (println "[ROUTER] SSE request:" uri))
+        (if (or (= uri "/dashboard/events")
+                (re-matches #"/list/[A-Za-z0-9]+/events" uri))
+          (sse-handler req)
+          (main-handler req))))))
