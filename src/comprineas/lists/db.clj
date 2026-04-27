@@ -10,9 +10,9 @@
 ;; ──────────────────────────────────────────────────────────
 
 (defn find-by-code
-  "Fetch a list by its 6-character share code."
+  "Fetch a list by its 6-character share code (case-insensitive)."
   [ds code]
-  (db/execute-one! ds ["SELECT * FROM lists WHERE code = ?" code]))
+  (db/execute-one! ds ["SELECT * FROM lists WHERE LOWER(code) = LOWER(?)" code]))
 
 (defn find-by-id
   "Fetch a list by its id."

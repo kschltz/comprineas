@@ -37,7 +37,7 @@ Received string:  ""
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "KLXEW5" [ref=e19] [cursor=pointer]
+          - button "35ZWBI" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -61,7 +61,7 @@ Received string:  ""
         - heading "Share List" [level=3] [ref=e43]
         - paragraph [ref=e44]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e45]:
-          - code [ref=e46]: KLXEW5
+          - code [ref=e46]: 35ZWBI
           - button "📋" [ref=e47] [cursor=pointer]
       - generic [ref=e48]:
         - heading "Participants" [level=3] [ref=e49]

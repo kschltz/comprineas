@@ -43,7 +43,7 @@ Timeout: 5000ms
 Call log:
   - Expect "not toContainText" with timeout 5000ms
   - waiting for locator('#item-list')
-    9 × locator resolved to <div id="item-list" hx-trigger="load" class="px-6 pb-6" hx-get="/list/2V10L6/items-list">…</div>
+    9 × locator resolved to <div id="item-list" hx-trigger="load" class="px-6 pb-6" hx-get="/list/DGN7PO/items-list">…</div>
       - unexpected value "
                         Loading items…
                     
@@ -88,7 +88,7 @@ Call log:
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "2V10L6" [ref=e19] [cursor=pointer]
+          - button "DGN7PO" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -98,7 +98,7 @@ Call log:
               - textbox "Item name" [active] [ref=e26]
             - generic [ref=e27]:
               - generic [ref=e28]: Quantity
-              - textbox "1 kg" [ref=e29]: 200g
+              - textbox "1 kg" [ref=e29]
             - generic [ref=e30]:
               - generic [ref=e31]: Observations
               - textbox "notes" [ref=e32]: Cheddar
@@ -120,7 +120,7 @@ Call log:
         - heading "Share List" [level=3] [ref=e50]
         - paragraph [ref=e51]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e52]:
-          - code [ref=e53]: 2V10L6
+          - code [ref=e53]: DGN7PO
           - button "📋" [ref=e54] [cursor=pointer]
       - generic [ref=e55]:
         - heading "Participants" [level=3] [ref=e56]

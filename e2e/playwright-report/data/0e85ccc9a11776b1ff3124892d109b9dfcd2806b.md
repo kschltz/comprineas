@@ -15,7 +15,7 @@
 Error: expect(locator).toContainText(expected) failed
 
 Locator: locator('#list-name')
-Expected substring: "Team List 1777317781768"
+Expected substring: "Team List 1777317997724"
 Timeout: 10000ms
 Error: element(s) not found
 
@@ -47,7 +47,7 @@ Call log:
       - generic [ref=e17]:
         - heading "Join an Existing List" [level=2] [ref=e18]
         - generic [ref=e20]:
-          - textbox "Enter share code" [ref=e21]: XQYWIO
+          - textbox "Enter share code" [ref=e21]: GLBMJ1
           - button "Join" [active] [ref=e22] [cursor=pointer]
     - generic [ref=e23]:
       - heading "Active Lists" [level=2] [ref=e24]
