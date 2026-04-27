@@ -65,10 +65,17 @@ test('PRD-0004: Join an existing list by code', async ({ page }) => {
   await registerAndLogin(page, emailA, 'testpass123', 'Alice');
   await createListOnDashboard(page, listName);
   
-  // Extract the list code from hx-post attributes in the page
+  // Extract the list code — try multiple patterns
   const pageContent = await page.content();
-  const m = pageContent.match(/complete\/([a-z0-9]{6})/);
+  console.log('Page content contains hx-post:', pageContent.includes('hx-post'));
+  console.log('Page URL:', page.url());
+  // Try copyCode pattern from the code display button
+  let m = pageContent.match(/copyCode\('([a-z0-9]{6})'\)/);
+  if (!m) m = pageContent.match(/complete\/([a-z0-9]{6})/);
+  if (!m) m = pageContent.match(/\/list\/([a-z0-9]{6})/);
+  if (!m) m = pageContent.match(/">([a-z0-9]{6})<\/button>/);
   const listCode = m ? m[1] : null;
+  console.log('Extracted code:', listCode);
   expect(listCode).toMatch(/^[a-z0-9]{6}$/);
 
   // Logout User A
