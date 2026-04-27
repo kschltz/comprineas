@@ -24,10 +24,15 @@ async function createList(page, name) {
 }
 
 async function addItem(page, itemName, quantity, observations) {
+  console.log(`addItem: ${itemName}`);
   await page.fill('input[name="name"]', itemName);
   if (quantity !== undefined) await page.fill('input[name="quantity"]', quantity);
   if (observations !== undefined) await page.fill('input[name="observations"]', observations);
   await page.click('button:has-text("Add Item")');
+  console.log(`  clicked Add Item for ${itemName}`);
+  // Wait for the HTMX swap to complete
+  await page.waitForTimeout(300);
+  console.log(`  done with ${itemName}`);
 }
 
 test.describe('PRD-0005: List Items', () => {
