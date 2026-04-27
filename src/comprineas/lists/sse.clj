@@ -40,8 +40,7 @@
 
 (defn- stream!
   "Send data on an http-kit channel without closing it.
-   First call should include {:status :headers :body} map.
-   Subsequent calls can send raw SSE data strings."
+   Each call includes the full response map per http-kit SSE convention."
   [ch data]
   (http-kit/send! ch data false))
 
@@ -61,7 +60,7 @@
                    (str "event: " event-type "\ndata: {}\n\n"))]
     (doseq [ch channels]
       (try
-        (stream! ch sse-data)
+        (stream! ch {:status 200, :headers sse-headers, :body sse-data})
         (catch Exception _
           (unregister-channel! list-code ch))))))
 
@@ -77,19 +76,15 @@
 (defn sse-handler
   "Ring handler for SSE connections at /list/:code/events."
   [req]
-  (let [list-code (get-in req [:path-params :code])
-        has-async? (some? (:async-channel req))]
-    (when (or (nil? list-code) (not has-async?))
-      (binding [*out* *err*]
-        (println "[SSE WARN] sse-handler called with:" {:list-code list-code :async-channel has-async? :uri (:uri req) :method (:request-method req)})))
+  (let [list-code (get-in req [:path-params :code])]
     (http-kit/as-channel req
                          {:on-open
                           (fn [ch]
-         ;; Send the initial HTTP 200 response to establish SSE
-                            (stream! ch {:status 200, :headers sse-headers, :body ""})
                             (register-channel! list-code ch)
-         ;; Initial SSE keep-alive comment
-                            (stream! ch ":ok\n\n"))
+                            (.println System/err (str "[SSE] Registered for list:" list-code " total:" (count (connected-viewers list-code))))
+                            (.flush System/err)
+         ;; Send initial SSE comment per the SSE spec
+                            (stream! ch {:status 200, :headers sse-headers, :body ":ok\n\n"}))
                           :on-close
                           (fn [ch _status]
                             (unregister-channel! list-code ch))})))
@@ -100,9 +95,10 @@
   (http-kit/as-channel req
                        {:on-open
                         (fn [ch]
-                          (stream! ch {:status 200, :headers sse-headers, :body ""})
                           (register-channel! "dashboard" ch)
-                          (stream! ch ":ok\n\n"))
+                          (.println System/err (str "[SSE] Registered dashboard channel, total:" (count (connected-viewers "dashboard"))))
+                          (.flush System/err)
+                          (stream! ch {:status 200, :headers sse-headers, :body ":ok\n\n"}))
                         :on-close
                         (fn [ch _status]
                           (unregister-channel! "dashboard" ch))}))
