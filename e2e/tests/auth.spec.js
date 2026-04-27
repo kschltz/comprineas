@@ -23,28 +23,25 @@ async function browserLogin(page, email, password) {
 
 test.describe('Authentication', () => {
 
-  test('debug login', async ({ page }) => {
-    const email = uniqueEmail('debug');
+  test('login works standalone', async ({ page }) => {
+    const email = uniqueEmail('solo');
     const password = 'password123';
-    // Create user directly
-    const regResp = await page.request.post('/register', {
-      form: { email, password, password_confirm: password, display_name: 'Debug' },
+    // Create user via API (follows redirects, returns 200 from /dashboard)
+    await page.request.post('/register', {
+      form: { email, password, password_confirm: password, display_name: 'Solo' },
     });
-    console.log('Register status:', regResp.status());
-    console.log('Register location:', regResp.headers()['location']);
-    
-    // Now try login
+    // Login via browser form
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
     
-    const [loginResp] = await Promise.all([
-      page.waitForResponse(r => r.url().includes('/login/password'), { timeout: 5000 }),
+    await Promise.all([
+      page.waitForURL('**/dashboard', { timeout: 10000 }),
       page.click('button:has-text("Log in")')
     ]);
-    console.log('Login status:', loginResp.status());
-    console.log('Login location:', loginResp.headers()['location']);
-    console.log('Login body start:', (await loginResp.text()).substring(0, 300));
+    
+    await expect(page.locator('body')).toContainText('Hi, Solo');
+    console.log('SUCCESS — dashboard loaded');
   });
 
   test('user can login and logout', async ({ page }) => {
