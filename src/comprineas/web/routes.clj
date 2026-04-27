@@ -3,7 +3,6 @@
             [reitit.ring.middleware.muuntaja :as muuntaja]
             [reitit.ring.middleware.parameters :as parameters]
             [muuntaja.core :as m]
-            [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [comprineas.auth.handlers :as auth]
             [comprineas.auth.middleware :as auth-mw]
@@ -82,9 +81,5 @@
         (ring/redirect-trailing-slash-handler)
         (ring/create-default-handler)))
       (wrap-deps {:db db :secrets secrets :mailer mailer})
-      (wrap-session {:cookie-attrs {:http-only true
-                                    :same-site :strict
-                                    :secure false} ;; set true in production with HTTPS
-                     :cookie-name "comprineas.session"})
       (auth-mw/wrap-auth db)
       (wrap-defaults (assoc-in site-defaults [:security :anti-forgery] false))))

@@ -6,7 +6,7 @@
 
 # Test info
 
-- Name: auth.spec.js >> Authentication >> login works standalone
+- Name: auth.spec.js >> Authentication >> register & login via browser only
 - Location: tests/auth.spec.js:26:3
 
 # Error details
@@ -73,51 +73,49 @@ waiting for navigation to "**/dashboard" until "load"
   23 | 
   24 | test.describe('Authentication', () => {
   25 | 
-  26 |   test('login works standalone', async ({ page }) => {
-  27 |     const email = uniqueEmail('solo');
+  26 |   test('register & login via browser only', async ({ page }) => {
+  27 |     const email = uniqueEmail('browser');
   28 |     const password = 'password123';
-  29 |     // Create user via API (follows redirects, returns 200 from /dashboard)
-  30 |     await page.request.post('/register', {
-  31 |       form: { email, password, password_confirm: password, display_name: 'Solo' },
-  32 |     });
-  33 |     // Login via browser form
-  34 |     await page.goto('/login');
-  35 |     await page.fill('input[name="email"]', email);
-  36 |     await page.fill('input[name="password"]', password);
-  37 |     
-  38 |     await Promise.all([
-> 39 |       page.waitForURL('**/dashboard', { timeout: 10000 }),
+  29 |     
+  30 |     // Register via browser form
+  31 |     await page.goto('/register');
+  32 |     await page.fill('input[name="email"]', email);
+  33 |     await page.fill('input[name="password"]', password);
+  34 |     await page.fill('input[name="display_name"]', 'Browser');
+  35 |     
+  36 |     await Promise.all([
+> 37 |       page.waitForURL('**/dashboard', { timeout: 10000 }),
      |            ^ TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
-  40 |       page.click('button:has-text("Log in")')
-  41 |     ]);
-  42 |     
-  43 |     await expect(page.locator('body')).toContainText('Hi, Solo');
-  44 |     console.log('SUCCESS — dashboard loaded');
-  45 |   });
-  46 | 
-  47 |   test('user can login and logout', async ({ page }) => {
-  48 |     const email = uniqueEmail('logout');
-  49 |     await createUser(page, email, 'password123', 'LogoutTest');
-  50 |     await browserLogin(page, email, 'password123');
-  51 |     await page.click('button:has-text("Logout")');
-  52 |     await expect(page.locator('body')).toContainText(/log in|login/i, { timeout: 5000 });
-  53 |   });
-  54 | 
-  55 |   test('forgot password page renders', async ({ page }) => {
-  56 |     await page.goto('/forgot-password');
-  57 |     await expect(page.locator('body')).toContainText('Forgot', { timeout: 5000 });
-  58 |   });
-  59 | 
-  60 |   test('invalid login shows error', async ({ page }) => {
-  61 |     const email = uniqueEmail('badlogin');
-  62 |     await createUser(page, email, 'password123', 'BadLogin');
-  63 |     await page.goto('/login');
-  64 |     await page.fill('input[name="email"]', email);
-  65 |     await page.fill('input[name="password"]', 'wrongpassword');
-  66 |     await page.click('button:has-text("Log in")');
-  67 |     await expect(page.locator('body')).toContainText(/invalid|wrong|error/i, { timeout: 5000 });
-  68 |   });
+  38 |       page.click('button:has-text("Register")')
+  39 |     ]);
+  40 |     
+  41 |     await expect(page.locator('body')).toContainText('Hi, Browser');
+  42 |     console.log('Registration + dashboard works!');
+  43 |   });
+  44 | 
+  45 |   test('user can login and logout', async ({ page }) => {
+  46 |     const email = uniqueEmail('logout');
+  47 |     await createUser(page, email, 'password123', 'LogoutTest');
+  48 |     await browserLogin(page, email, 'password123');
+  49 |     await page.click('button:has-text("Logout")');
+  50 |     await expect(page.locator('body')).toContainText(/log in|login/i, { timeout: 5000 });
+  51 |   });
+  52 | 
+  53 |   test('forgot password page renders', async ({ page }) => {
+  54 |     await page.goto('/forgot-password');
+  55 |     await expect(page.locator('body')).toContainText('Forgot', { timeout: 5000 });
+  56 |   });
+  57 | 
+  58 |   test('invalid login shows error', async ({ page }) => {
+  59 |     const email = uniqueEmail('badlogin');
+  60 |     await createUser(page, email, 'password123', 'BadLogin');
+  61 |     await page.goto('/login');
+  62 |     await page.fill('input[name="email"]', email);
+  63 |     await page.fill('input[name="password"]', 'wrongpassword');
+  64 |     await page.click('button:has-text("Log in")');
+  65 |     await expect(page.locator('body')).toContainText(/invalid|wrong|error/i, { timeout: 5000 });
+  66 |   });
+  67 | 
+  68 | });
   69 | 
-  70 | });
-  71 | 
 ```
