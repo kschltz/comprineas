@@ -77,11 +77,7 @@
         <!-- Active Lists Section -->
         <div class="mb-10">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Active Lists</h2>
-            {% if active-lists|empty? %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                <p class="text-gray-500 text-sm">No active lists yet. Create one or join one above!</p>
-            </div>
-            {% else %}
+            {% if active-lists %}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for list in active-lists %}
                 <a href="/list/{{list.code}}"
@@ -100,11 +96,15 @@
                 </a>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                <p class="text-gray-500 text-sm">No active lists yet. Create one or join one above!</p>
+            </div>
             {% endif %}
         </div>
 
         <!-- Past (Completed) Lists Section -->
-        {% if completed-lists|not-empty? %}
+        {% if completed-lists %}
         <div class="mb-10">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Past Lists</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
