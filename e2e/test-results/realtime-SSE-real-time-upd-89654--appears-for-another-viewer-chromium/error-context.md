@@ -12,13 +12,23 @@
 # Error details
 
 ```
-TypeError: response.headers(...).entries is not a function
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('text=Fresh Milk')
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for locator('text=Fresh Milk')
+
 ```
 
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - navigation [ref=e2]:
     - generic [ref=e3]:
       - link "Comprineas" [ref=e4] [cursor=pointer]:
@@ -34,7 +44,7 @@ TypeError: response.headers(...).entries is not a function
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "3G2FIA" [ref=e19] [cursor=pointer]
+          - button "8FBEKX" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -48,21 +58,29 @@ TypeError: response.headers(...).entries is not a function
             - generic [ref=e30]:
               - generic [ref=e31]: Observations
               - textbox "notes" [ref=e32]
-          - button "Add Item" [ref=e33] [cursor=pointer]
-      - heading "Items (0)" [level=2] [ref=e36]
-      - button "✓ Complete List" [ref=e39] [cursor=pointer]
-    - generic [ref=e40]:
-      - generic [ref=e41]:
-        - heading "Share List" [level=3] [ref=e42]
-        - paragraph [ref=e43]: "Share this code with anyone you want to collaborate with:"
-        - generic [ref=e44]:
-          - code [ref=e45]: 3G2FIA
-          - button "📋" [ref=e46] [cursor=pointer]
-      - generic [ref=e47]:
-        - heading "Participants" [level=3] [ref=e48]
-        - paragraph [ref=e49]: "1"
-        - paragraph [ref=e50]: people have joined this list
-      - link "← Back to My Lists" [ref=e52] [cursor=pointer]:
+          - button "Add Item" [active] [ref=e33] [cursor=pointer]
+      - generic [ref=e34]:
+        - heading "Items (0)" [level=2] [ref=e36]
+        - generic [ref=e38]:
+          - checkbox [ref=e39] [cursor=pointer]
+          - generic [ref=e40]:
+            - text: Fresh Milk (2 liters)
+            - paragraph [ref=e41]: organic
+          - button "Delete item" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+      - button "✓ Complete List" [ref=e46] [cursor=pointer]
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - heading "Share List" [level=3] [ref=e49]
+        - paragraph [ref=e50]: "Share this code with anyone you want to collaborate with:"
+        - generic [ref=e51]:
+          - code [ref=e52]: 8FBEKX
+          - button "📋" [ref=e53] [cursor=pointer]
+      - generic [ref=e54]:
+        - heading "Participants" [level=3] [ref=e55]
+        - paragraph [ref=e56]: "1"
+        - paragraph [ref=e57]: people have joined this list
+      - link "← Back to My Lists" [ref=e59] [cursor=pointer]:
         - /url: /dashboard
 ```
 
@@ -136,111 +154,110 @@ TypeError: response.headers(...).entries is not a function
   65  |     });
   66  | 
   67  |     await test.step('User B navigates to the same list', async () => {
-  68  |       // Set up raw SSE listener BEFORE navigation
-  69  |       await pageB.route('**/events', async route => {
-  70  |         const response = await route.fetch();
-  71  |         const body = await response.text();
-  72  |         console.log('SSE raw response status:', response.status());
-> 73  |         console.log('SSE raw response headers:', Object.fromEntries(response.headers().entries()));
-      |                                                                                        ^ TypeError: response.headers(...).entries is not a function
-  74  |         console.log('SSE raw body (first 500):', body.substring(0, 500));
-  75  |         await route.fulfill({ response });
-  76  |       });
-  77  |       await navigateToListViaUrl(pageB, code);
-  78  |       await pageB.waitForTimeout(1500);
-  79  |     });
-  80  | 
-  81  |     await test.step('User A adds an item', async () => {
-  82  |       await pageA.fill('input[name="name"]', 'Fresh Milk');
-  83  |       await pageA.fill('input[name="quantity"]', '2 liters');
-  84  |       await pageA.fill('input[name="observations"]', 'organic');
-  85  |       await pageA.click('button:has-text("Add Item")');
-  86  |     });
-  87  | 
-  88  |     await test.step('Assert User B sees the item within 5 seconds via SSE', async () => {
-  89  |       const events = await pageB.evaluate(() => window.__sseEvents || []);
-  90  |       console.log('SSE events received by User B:', JSON.stringify(events, null, 2));
-  91  |       await expect(pageB.locator('text=Fresh Milk')).toBeVisible({ timeout: 5000 });
-  92  |     });
-  93  | 
-  94  |     await ctxA.close();
-  95  |     await ctxB.close();
-  96  |   });
-  97  | 
-  98  |   test('2. Real-time item check sync', async ({ browser }) => {
-  99  |     const ctxA = await browser.newContext();
-  100 |     const ctxB = await browser.newContext();
-  101 |     const pageA = await ctxA.newPage();
-  102 |     const pageB = await ctxB.newPage();
+  68  |       await navigateToListViaUrl(pageB, code);
+  69  |       await pageB.waitForTimeout(1500);
+  70  |     });
+  71  | 
+  72  |     await test.step('User A adds an item', async () => {
+  73  |       await pageA.fill('input[name="name"]', 'Fresh Milk');
+  74  |       await pageA.fill('input[name="quantity"]', '2 liters');
+  75  |       await pageA.fill('input[name="observations"]', 'organic');
+  76  |       await pageA.click('button:has-text("Add Item")');
+  77  |     });
+  78  | 
+  79  |     await test.step('Assert User B sees the item within 5 seconds via SSE', async () => {
+  80  |       const events = await pageB.evaluate(() => window.__sseEvents || []);
+  81  |       console.log('SSE events received by User B:', JSON.stringify(events, null, 2));
+> 82  |       await expect(pageB.locator('text=Fresh Milk')).toBeVisible({ timeout: 5000 });
+      |                                                      ^ Error: expect(locator).toBeVisible() failed
+  83  |     });
+  84  | 
+  85  |     await ctxA.close();
+  86  |     await ctxB.close();
+  87  |   });
+  88  | 
+  89  |   test('2. Real-time item check sync', async ({ browser }) => {
+  90  |     const ctxA = await browser.newContext();
+  91  |     const ctxB = await browser.newContext();
+  92  |     const pageA = await ctxA.newPage();
+  93  |     const pageB = await ctxB.newPage();
+  94  | 
+  95  |     const emailA = uniqueEmail('rt-check-a');
+  96  |     const emailB = uniqueEmail('rt-check-b');
+  97  |     const password = 'TestPass123';
+  98  | 
+  99  |     await test.step('Register both users', async () => {
+  100 |       await registerAndLogin(pageA, emailA, password, 'CheckA');
+  101 |       await registerAndLogin(pageB, emailB, password, 'CheckB');
+  102 |     });
   103 | 
-  104 |     const emailA = uniqueEmail('rt-check-a');
-  105 |     const emailB = uniqueEmail('rt-check-b');
-  106 |     const password = 'TestPass123';
-  107 | 
-  108 |     await test.step('Register both users', async () => {
-  109 |       await registerAndLogin(pageA, emailA, password, 'CheckA');
-  110 |       await registerAndLogin(pageB, emailB, password, 'CheckB');
-  111 |     });
-  112 | 
-  113 |     let code;
-  114 |     await test.step('User A creates a list and adds an item', async () => {
-  115 |       await createListAndWait(pageA, 'Check Sync Test');
-  116 |       code = await extractListCode(pageA);
-  117 |       await pageA.fill('input[name="name"]', 'Bananas');
-  118 |       await pageA.fill('input[name="quantity"]', '1 bunch');
-  119 |       await pageA.click('button:has-text("Add Item")');
-  120 |       await expect(pageA.locator('text=Bananas')).toBeVisible({ timeout: 5000 });
-  121 |     });
-  122 | 
-  123 |     await test.step('User B navigates to the same list and sees the item', async () => {
-  124 |       await navigateToListViaUrl(pageB, code);
-  125 |       await expect(pageB.locator('text=Bananas')).toBeVisible({ timeout: 5000 });
-  126 |     });
-  127 | 
-  128 |     await test.step('User A checks the item', async () => {
-  129 |       const checkbox = pageA.locator('#item-list input[type="checkbox"]');
-  130 |       await checkbox.check();
-  131 |       await expect(pageA.locator('div.opacity-50').filter({ hasText: 'Bananas' })).toBeVisible({ timeout: 5000 });
-  132 |     });
-  133 | 
-  134 |     await test.step('Assert User B sees the item as checked within 5 seconds via SSE', async () => {
-  135 |       const checkedItem = pageB.locator('div.opacity-50').filter({ hasText: 'Bananas' });
-  136 |       await expect(checkedItem).toBeVisible({ timeout: 5000 });
-  137 |       await expect(pageB.locator('#item-list input[type="checkbox"]')).toBeChecked();
-  138 |     });
-  139 | 
-  140 |     await ctxA.close();
-  141 |     await ctxB.close();
-  142 |   });
-  143 | 
-  144 |   test('3. New list appears on dashboard via SSE', async ({ browser }) => {
-  145 |     const ctxA = await browser.newContext();
-  146 |     const ctxB = await browser.newContext();
-  147 |     const pageA = await ctxA.newPage();
-  148 |     const pageB = await ctxB.newPage();
+  104 |     let code;
+  105 |     await test.step('User A creates a list and adds an item', async () => {
+  106 |       await createListAndWait(pageA, 'Check Sync Test');
+  107 |       code = await extractListCode(pageA);
+  108 |       await pageA.fill('input[name="name"]', 'Bananas');
+  109 |       await pageA.fill('input[name="quantity"]', '1 bunch');
+  110 |       await pageA.click('button:has-text("Add Item")');
+  111 |       await expect(pageA.locator('text=Bananas')).toBeVisible({ timeout: 5000 });
+  112 |     });
+  113 | 
+  114 |     await test.step('User B navigates to the same list and sees the item', async () => {
+  115 |       await navigateToListViaUrl(pageB, code);
+  116 |       await expect(pageB.locator('text=Bananas')).toBeVisible({ timeout: 5000 });
+  117 |     });
+  118 | 
+  119 |     await test.step('User A checks the item', async () => {
+  120 |       const checkbox = pageA.locator('#item-list input[type="checkbox"]');
+  121 |       await checkbox.check();
+  122 |       await expect(pageA.locator('div.opacity-50').filter({ hasText: 'Bananas' })).toBeVisible({ timeout: 5000 });
+  123 |     });
+  124 | 
+  125 |     await test.step('Assert User B sees the item as checked within 5 seconds via SSE', async () => {
+  126 |       const checkedItem = pageB.locator('div.opacity-50').filter({ hasText: 'Bananas' });
+  127 |       await expect(checkedItem).toBeVisible({ timeout: 5000 });
+  128 |       await expect(pageB.locator('#item-list input[type="checkbox"]')).toBeChecked();
+  129 |     });
+  130 | 
+  131 |     await ctxA.close();
+  132 |     await ctxB.close();
+  133 |   });
+  134 | 
+  135 |   test('3. New list appears on dashboard via SSE', async ({ browser }) => {
+  136 |     const ctxA = await browser.newContext();
+  137 |     const ctxB = await browser.newContext();
+  138 |     const pageA = await ctxA.newPage();
+  139 |     const pageB = await ctxB.newPage();
+  140 | 
+  141 |     const emailA = uniqueEmail('rt-dash-a');
+  142 |     const emailB = uniqueEmail('rt-dash-b');
+  143 |     const password = 'TestPass123';
+  144 | 
+  145 |     await test.step('Register both users', async () => {
+  146 |       await registerAndLogin(pageA, emailA, password, 'DashA');
+  147 |       await registerAndLogin(pageB, emailB, password, 'DashB');
+  148 |     });
   149 | 
-  150 |     const emailA = uniqueEmail('rt-dash-a');
-  151 |     const emailB = uniqueEmail('rt-dash-b');
-  152 |     const password = 'TestPass123';
-  153 | 
-  154 |     await test.step('Register both users', async () => {
-  155 |       await registerAndLogin(pageA, emailA, password, 'DashA');
-  156 |       await registerAndLogin(pageB, emailB, password, 'DashB');
-  157 |     });
-  158 | 
-  159 |     await test.step('Both users are on the dashboard with SSE connected', async () => {
-  160 |       await pageA.goto('/dashboard');
-  161 |       await pageB.goto('/dashboard');
-  162 |       await pageA.waitForLoadState('networkidle');
-  163 |       await pageB.waitForLoadState('networkidle');
-  164 |     });
-  165 | 
-  166 |     await test.step('User A creates a new list', async () => {
-  167 |       await pageA.fill('input[name="name"]', 'Dashboard SSE Alpha');
-  168 |       await pageA.click('text=Create List');
-  169 |       await expect(pageA.locator('#list-name')).toBeVisible({ timeout: 10000 });
-  170 |     });
-  171 | 
-  172 |     await test.step('Assert User B sees the new list appear on dashboard within 5 seconds via SSE', async () => {
-  173 |       await expect(pageB.locator('text=Dashboard SSE Alpha')).toBeVisible({ timeout: 5000 });
+  150 |     await test.step('Both users are on the dashboard with SSE connected', async () => {
+  151 |       await pageA.goto('/dashboard');
+  152 |       await pageB.goto('/dashboard');
+  153 |       await pageA.waitForLoadState('networkidle');
+  154 |       await pageB.waitForLoadState('networkidle');
+  155 |     });
+  156 | 
+  157 |     await test.step('User A creates a new list', async () => {
+  158 |       await pageA.fill('input[name="name"]', 'Dashboard SSE Alpha');
+  159 |       await pageA.click('text=Create List');
+  160 |       await expect(pageA.locator('#list-name')).toBeVisible({ timeout: 10000 });
+  161 |     });
+  162 | 
+  163 |     await test.step('Assert User B sees the new list appear on dashboard within 5 seconds via SSE', async () => {
+  164 |       await expect(pageB.locator('text=Dashboard SSE Alpha')).toBeVisible({ timeout: 5000 });
+  165 |     });
+  166 | 
+  167 |     await ctxA.close();
+  168 |     await ctxB.close();
+  169 |   });
+  170 | 
+  171 | });
+  172 | 
 ```

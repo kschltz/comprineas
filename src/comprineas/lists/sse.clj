@@ -89,9 +89,13 @@
   "Ring handler for SSE connections at /list/:code/events.
    Uses http-kit's as-channel to keep the connection open for streaming events."
   [req]
-  (let [list-code (get-in req [:path-params :code])]
-    (http-kit/as-channel req
-                         {:on-open   (fn [ch]
+  (let [list-code (get-in req [:path-params :code])
+        async-ch  (:async-channel req)]
+    (println "[SSE] sse-handler called for list:" list-code "async-channel:" (some? async-ch))
+    (if-not async-ch
+      {:status 200 :headers sse-response-headers :body ""}
+      (http-kit/as-channel req
+                           {:on-open   (fn [ch]
                     ;; Send initial HTTP response to establish SSE connection
                     ;; false = keep channel open for streaming
                                        (http-kit/send! ch {:status  200
@@ -103,7 +107,7 @@
                     ;; Send initial comment to keep connection alive
                                        (send-sse! ch ":ok\n\n"))
                           :on-close  (fn [ch _status]
-                                       (unregister-channel! list-code ch))})))
+                                       (unregister-channel! list-code ch))}))))
 
 (defn dashboard-sse-handler
   "Ring handler for dashboard SSE connections at /dashboard/events.
