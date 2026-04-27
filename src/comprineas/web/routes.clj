@@ -11,10 +11,13 @@
             [comprineas.lists.join :as join]
             [comprineas.lists.copy :as copy]
             [comprineas.lists.sse :as sse]
-            [comprineas.items.handlers :as items]))
+            [comprineas.items.handlers :as items]
+            [ring.util.response :as resp]))
 
 (defn routes []
-  [["/login"
+  [["/"
+    {:get {:handler (fn [_] (resp/redirect "/dashboard" :see-other))}}]
+   ["/login"
     {:get  {:handler auth/login-page}
      :post {:handler auth/request-magic-link}}]
    ["/login/password"
