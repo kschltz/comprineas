@@ -66,6 +66,23 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
 
     await test.step('User B navigates to the same list', async () => {
       await navigateToListViaUrl(pageB, code);
+      // Wait for SSE connection to establish and log any errors
+      await pageB.waitForTimeout(1000);
+      const sseInfo = await pageB.evaluate(() => {
+        // Check if HTMX SSE extension is loaded
+        const hasHtmx = typeof htmx !== 'undefined';
+        const hasExt = hasHtmx && htmx.ext && typeof htmx.ext.sse !== 'undefined';
+        const sseEl = document.querySelector('[hx-sse]');
+        const scripts = Array.from(document.querySelectorAll('script[src]')).map(s => s.src);
+        return {
+          htmxLoaded: hasHtmx,
+          htmxExtSse: hasExt,
+          sseAttr: sseEl ? sseEl.getAttribute('hx-sse') : null,
+          scripts: scripts,
+          eventSources: performance.getEntriesByType('resource').filter(e => e.name.includes('/events')).map(e => ({name: e.name, status: e.responseStatus}))
+        };
+      });
+      console.log('User B SSE info:', JSON.stringify(sseInfo, null, 2));
     });
 
     await test.step('User A adds an item', async () => {

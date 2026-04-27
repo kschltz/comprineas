@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
 </head>
-<body class="bg-gray-50 min-h-screen" hx-ext="sse" hx-sse="connect:/list/{{list.code}}/events">
+<body class="bg-gray-50 min-h-screen" hx-ext="sse" sse-connect="/list/{{list.code}}/events">
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -131,10 +131,10 @@
                 </div>
 
                 <!-- SSE event handlers -->
-                <div hx-sse="swap:item-added" hx-swap-oob="true"></div>
-                <div hx-sse="swap:item-updated" hx-swap-oob="true"></div>
-                <div hx-sse="swap:item-deleted" hx-swap-oob="true"></div>
-                <div hx-sse="swap:list-updated" hx-swap-oob="true"></div>
+                <div sse-swap="item-added" hx-swap-oob="true"></div>
+                <div sse-swap="item-updated" hx-swap-oob="true"></div>
+                <div sse-swap="item-deleted" hx-swap-oob="true"></div>
+                <div sse-swap="list-updated" hx-swap-oob="true"></div>
             </div>
 
             <!-- Sidebar -->
