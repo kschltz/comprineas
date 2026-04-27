@@ -99,6 +99,7 @@
                                                            :body    ""}
                                                        false)
                                        (register-channel! list-code ch)
+                                       (println "[SSE] Registered channel for list:" list-code "total:" (count (connected-viewers list-code)))
                     ;; Send initial comment to keep connection alive
                                        (send-sse! ch ":ok\n\n"))
                           :on-close  (fn [ch _status]
