@@ -78,8 +78,8 @@ Call log:
   19 | async function createList(page, name) {
   20 |   await page.fill('input[name="name"]', name);
   21 |   await page.click('text=Create List');
-  22 |   await page.waitForURL('**/list/**');
-  23 |   return page.url().split('/list/')[1];
+  22 |   // HTMX swaps body, no URL change — wait for list page content
+  23 |   await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
   24 | }
   25 | 
   26 | test.describe('PRD-0007 — My Lists Dashboard', () => {
@@ -116,43 +116,44 @@ Call log:
   56 |     // Complete the list — accept the confirmation dialog
   57 |     page.on('dialog', dialog => dialog.accept());
   58 |     await page.click('text=Complete List');
-  59 |     await page.waitForURL('**/dashboard');
-  60 | 
-  61 |     await expect(page.getByText('Active Lists')).toBeVisible();
-  62 |     await expect(page.getByText('Past Lists')).toBeVisible();
-  63 |   });
-  64 | 
-  65 |   test('5. List cards clickable', async ({ page }) => {
-  66 |     const email = uniqueEmail('dash5');
-  67 |     await registerAndLogin(page, email, 'password123', 'ClickTest');
-  68 | 
-  69 |     await createList(page, 'ClickMe');
-  70 |     await page.goto('/dashboard');
-  71 | 
-  72 |     await page.click('text=ClickMe');
-  73 |     expect(page.url()).toContain('/list/');
-  74 |   });
-  75 | 
-  76 |   test('6. Logout from dashboard', async ({ page }) => {
-  77 |     const email = uniqueEmail('dash6');
-  78 |     await registerAndLogin(page, email, 'password123', 'LogoutTest');
-  79 | 
-  80 |     await page.click('button:has-text("Logout")');
-  81 |     await page.waitForURL('**/login', { timeout: 10000 });
-  82 |   });
-  83 | 
-  84 |   test('7. Create form with empty name shows validation', async ({ page }) => {
-  85 |     const email = uniqueEmail('dash7');
-  86 |     await registerAndLogin(page, email, 'password123', 'ValTest');
-  87 | 
-  88 |     // Submit the create form with empty name — browser validates required field
-  89 |     await page.click('text=Create List');
-  90 | 
-  91 |     // Browser-native validation prevents submission; we stay on dashboard
-  92 |     await expect(page).toHaveURL(/\/dashboard$/);
-  93 |     await expect(page.locator('h1')).toContainText('My Lists');
-  94 |   });
-  95 | 
-  96 | });
-  97 | 
+  59 |     // HTMX handles redirect, swaps body — wait for dashboard content
+  60 |     await expect(page.locator('h1')).toContainText('My Lists', { timeout: 10000 });
+  61 | 
+  62 |     await expect(page.getByText('Active Lists')).toBeVisible();
+  63 |     await expect(page.getByText('Past Lists')).toBeVisible();
+  64 |   });
+  65 | 
+  66 |   test('5. List cards clickable', async ({ page }) => {
+  67 |     const email = uniqueEmail('dash5');
+  68 |     await registerAndLogin(page, email, 'password123', 'ClickTest');
+  69 | 
+  70 |     await createList(page, 'ClickMe');
+  71 |     await page.goto('/dashboard');
+  72 | 
+  73 |     await page.click('text=ClickMe');
+  74 |     expect(page.url()).toContain('/list/');
+  75 |   });
+  76 | 
+  77 |   test('6. Logout from dashboard', async ({ page }) => {
+  78 |     const email = uniqueEmail('dash6');
+  79 |     await registerAndLogin(page, email, 'password123', 'LogoutTest');
+  80 | 
+  81 |     await page.click('button:has-text("Logout")');
+  82 |     await page.waitForURL('**/login', { timeout: 10000 });
+  83 |   });
+  84 | 
+  85 |   test('7. Create form with empty name shows validation', async ({ page }) => {
+  86 |     const email = uniqueEmail('dash7');
+  87 |     await registerAndLogin(page, email, 'password123', 'ValTest');
+  88 | 
+  89 |     // Submit the create form with empty name — browser validates required field
+  90 |     await page.click('text=Create List');
+  91 | 
+  92 |     // Browser-native validation prevents submission; we stay on dashboard
+  93 |     await expect(page).toHaveURL(/\/dashboard$/);
+  94 |     await expect(page.locator('h1')).toContainText('My Lists');
+  95 |   });
+  96 | 
+  97 | });
+  98 | 
 ```
