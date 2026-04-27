@@ -63,9 +63,9 @@
    ["/logout"
     {:post {:handler auth/logout}}]])
 
-;; SSE routes are handled separately — they need deps injection
-;; and auth but must NOT go through wrap-defaults (which corrupts
-;; http-kit async channel responses).
+;; SSE routes are handled separately — they need deps and auth
+;; but must NOT go through wrap-defaults, which corrupts
+;; http-kit async channel responses.
 (defn sse-routes []
   [["/dashboard/events"
     {:get {:handler sse/dashboard-sse-handler}}]
@@ -75,36 +75,35 @@
 (defn wrap-deps [handler deps]
   (fn [req] (handler (merge req deps))))
 
+(defn- sse-request? [req]
+  (let [uri (:uri req)]
+    (or (= uri "/dashboard/events")
+        (some? (re-matches #"/list/[A-Za-z0-9]+/events" uri)))))
+
 (defn app [{:keys [db secrets mailer]}]
   (let [deps {:db db :secrets secrets :mailer mailer}
-        ;; Main app with standard middleware stack
-        main-handler (-> (ring/ring-handler
-                          (ring/router
-                           (routes)
-                           {:data {:muuntaja   m/instance
-                                   :middleware [parameters/parameters-middleware
-                                                muuntaja/format-middleware]}})
-                          (ring/routes
-                           (ring/redirect-trailing-slash-handler)
-                           (ring/create-default-handler)))
-                         (wrap-deps deps)
-                         (auth-mw/wrap-auth db)
-                         (wrap-defaults (-> site-defaults
-                                            (assoc-in [:security :anti-forgery] false)
-                                            (assoc :websocket nil))))
-        ;; SSE handler with minimal middleware (no wrap-defaults to avoid corrupting async responses)
-        sse-handler (-> (ring/ring-handler
-                         (ring/router (sse-routes))
-                         (ring/create-default-handler))
-                        (wrap-deps deps)
-                        (auth-mw/wrap-auth db))]
-    ;; Route requests: SSE paths go to sse-handler, everything else to main-handler
+        main-handler
+        (-> (ring/ring-handler
+             (ring/router
+              (routes)
+              {:data {:muuntaja   m/instance
+                      :middleware [parameters/parameters-middleware
+                                   muuntaja/format-middleware]}})
+             (ring/routes
+              (ring/redirect-trailing-slash-handler)
+              (ring/create-default-handler)))
+            (wrap-deps deps)
+            (auth-mw/wrap-auth db)
+            (wrap-defaults (-> site-defaults
+                               (assoc-in [:security :anti-forgery] false)
+                               (assoc :websocket nil))))
+        sse-handler
+        (-> (ring/ring-handler
+             (ring/router (sse-routes))
+             (ring/create-default-handler))
+            (wrap-deps deps)
+            (auth-mw/wrap-auth db))]
     (fn [req]
-      (let [uri (:uri req)]
-        (when (or (= uri "/dashboard/events")
-                  (re-matches #"/list/[A-Za-z0-9]+/events" uri))
-          (println "[ROUTER] SSE request:" uri))
-        (if (or (= uri "/dashboard/events")
-                (re-matches #"/list/[A-Za-z0-9]+/events" uri))
-          (sse-handler req)
-          (main-handler req))))))
+      (if (sse-request? req)
+        (sse-handler req)
+        (main-handler req)))))

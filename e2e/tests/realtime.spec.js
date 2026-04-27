@@ -66,7 +66,6 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
 
     await test.step('User B navigates to the same list', async () => {
       await navigateToListViaUrl(pageB, code);
-      await pageB.waitForTimeout(1500);
     });
 
     await test.step('User A adds an item', async () => {
@@ -77,8 +76,6 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
     });
 
     await test.step('Assert User B sees the item within 5 seconds via SSE', async () => {
-      const events = await pageB.evaluate(() => window.__sseEvents || []);
-      console.log('SSE events received by User B:', JSON.stringify(events, null, 2));
       await expect(pageB.locator('text=Fresh Milk')).toBeVisible({ timeout: 5000 });
     });
 
