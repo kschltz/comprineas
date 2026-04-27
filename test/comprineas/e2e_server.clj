@@ -33,11 +33,5 @@
                                {:port port :join? false})]
     (println (str "E2E_READY port=" port))
     (flush)
-    ;; Block until stdin closes (Playwright teardown kills process)
-    (try
-      (while (pos? (.read System/in -1))
-        (Thread/sleep 100))
-      (catch Exception _))
-    (.stop jetty)
-    (.close pg)
-    (shutdown-agents)))
+    ;; Block forever — Playwright teardown sends SIGTERM
+    (deref (promise))))
