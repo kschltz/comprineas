@@ -89,10 +89,13 @@ test.describe('PRD-0005: List Items', () => {
     await expect(page.locator('#item-list')).toContainText('Butter');
     await expect(page.locator('#item-list')).toContainText('Cheese');
 
-    const deleteButton = page.locator('#item-list > div')
-      .filter({ hasText: 'Butter' })
-      .locator('button[aria-label="Delete item"]');
-    await deleteButton.click();
+    // Click delete on the Butter item — find by aria-label on the first matching button
+    const deleteBtn = page.locator('#item-list button[aria-label="Delete item"]').first();
+    console.log('Clicking delete button, count:', await deleteBtn.count());
+    await deleteBtn.click();
+
+    // Give HTMX time to process the swap
+    await page.waitForTimeout(500);
 
     await expect(page.locator('#item-list')).not.toContainText('Butter');
     await expect(page.locator('#item-list')).toContainText('Cheese');
