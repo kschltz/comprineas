@@ -44,7 +44,7 @@ Call log:
           - paragraph [ref=e16]: Created by you
         - generic [ref=e17]:
           - generic [ref=e18]: "Code:"
-          - button "BJJF6J" [ref=e19] [cursor=pointer]
+          - button "USVKSK" [ref=e19] [cursor=pointer]
       - generic [ref=e20]:
         - heading "Add an Item" [level=2] [ref=e21]
         - generic [ref=e22]:
@@ -66,7 +66,7 @@ Call log:
         - heading "Share List" [level=3] [ref=e42]
         - paragraph [ref=e43]: "Share this code with anyone you want to collaborate with:"
         - generic [ref=e44]:
-          - code [ref=e45]: BJJF6J
+          - code [ref=e45]: USVKSK
           - button "📋" [ref=e46] [cursor=pointer]
       - generic [ref=e47]:
         - heading "Participants" [level=3] [ref=e48]
