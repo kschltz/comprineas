@@ -30,38 +30,16 @@ async function browserLogin(page, email, password) {
 
 test.describe('Authentication', () => {
 
-  test('dashboard accessible', async ({ page }) => {
-    const email = uniqueEmail('simp');
-    // Create user, then login via browser form
-    await createUser(page, email, 'testpass', 'Simple');
-    
-    // Try login via request context instead (which will set cookies properly)
-    const loginResp = await page.request.post('/login/password', {
-      form: { email, password: 'testpass' },
-    });
-    console.log('Login status:', loginResp.status());
-    
-    // Extract cookies from response
-    const setCookie = loginResp.headers()['set-cookie'];
-    console.log('Set-Cookie:', setCookie);
-    
-    // Now set the cookie manually on the browser context and navigate
-    if (setCookie) {
-      const cookieStr = setCookie.split(';')[0];
-      const [name, value] = cookieStr.split('=');
-      await page.context().addCookies([{
-        name,
-        value,
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Strict',
-      }]);
-    }
-    
-    await page.goto('/dashboard');
-    console.log('Final URL:', page.url());
-    await expect(page.locator('body')).toContainText('Simple', { timeout: 5000 });
+  test('register + login works', async ({ page }) => {
+    const email = uniqueEmail('reg');
+    await createUser(page, email, 'password123', 'Reggie');
+    await page.goto('/login');
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', 'password123');
+    await page.click('button:has-text("Log in")');
+    // Should redirect to dashboard
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await expect(page.locator('body')).toContainText('Hi, Reggie');
   });
 
   test('user can login with password', async ({ page }) => {
