@@ -57,7 +57,7 @@
    (broadcast! ds "dashboard" event-type data)))
 
 ;; ──────────────────────────────────────────────────────────
-;; SSE handler
+;; SSE handlers
 ;; ──────────────────────────────────────────────────────────
 
 (defn sse-handler
@@ -74,6 +74,23 @@
         on-close (fn [ch]
                    (unregister-channel! list-code ch))]
     ;; Return async response for http-kit
+    {:status 200
+     :headers {"Content-Type" "text/event-stream"
+                "Cache-Control" "no-cache"
+                "Connection" "keep-alive"
+                "X-Accel-Buffering" "no"}
+     :body (fn [ch]
+             (on-open ch))}))
+
+(defn dashboard-sse-handler
+  "Ring handler for dashboard SSE connections at /dashboard/events.
+   Registers channel under the 'dashboard' key."
+  [req]
+  (let [on-open (fn [ch]
+                  (register-channel! "dashboard" ch)
+                  (send! ch ":ok\n\n"))
+        on-close (fn [ch]
+                   (unregister-channel! "dashboard" ch))]
     {:status 200
      :headers {"Content-Type" "text/event-stream"
                 "Cache-Control" "no-cache"

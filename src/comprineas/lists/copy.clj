@@ -165,7 +165,7 @@
                       new-list-id user-id])
 
                     ;; Broadcast SSE so dashboard updates in real time (FR-8)
-                    (sse/broadcast! "list-created" {:code new-code :name name})
+                    (sse/broadcast-dashboard! db "list-created" {:code new-code :name name})
 
                     ;; Redirect to the new list (FR-3)
                     (htmx-redirect (str "/list/" new-code))))

@@ -50,12 +50,16 @@
    ["/list/:code/copy"
     {:get  {:handler copy/copy-list-page}
      :post {:handler copy/copy-list!}}]
+   ["/list/:code/items-list"
+    {:get {:handler items/items-list-page}}]
    ["/list/:code/items"
     {:post {:handler items/add-item!}}]
    ["/list/:code/items/:id/check"
     {:post {:handler items/toggle-check!}}]
    ["/list/:code/items/:id"
     {:delete {:handler items/delete-item!}}]
+   ["/dashboard/events"
+    {:get {:handler sse/dashboard-sse-handler}}]
    ["/list/:code/events"
     {:get {:handler sse/sse-handler}}]
    ["/logout"

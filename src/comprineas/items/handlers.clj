@@ -57,7 +57,7 @@
               (resp/content-type "text/html")
               (resp/status 400))
           (let [item (items-db/add-item! db (:id list) name quantity observations)]
-            (sse/broadcast! (:id list) "item-added"
+            (sse/broadcast! db code "item-added"
                             (assoc (select-keys item [:id :list_id :name :quantity :observations :checked :position :created_at])
                                    :html (str "<div id=\"item-list\" hx-swap-oob=\"beforeend\">"
                                               (render-item-row item list)
@@ -89,7 +89,7 @@
               (resp/status 404))
           (let [updated (items-db/toggle-check! db id)
                 items   (items-db/find-items-by-list db (:id list))]
-            (sse/broadcast! (:id list) "item-updated"
+            (sse/broadcast! db code "item-updated"
                             (assoc (select-keys updated [:id :list_id :name :quantity :observations :checked :position :created_at])
                                    :html (str "<div id=\"item-list\" hx-swap-oob=\"innerHTML\">"
                                               (render-item-list items list)
@@ -118,8 +118,21 @@
       (let [item (items-db/find-item-by-id db id)]
         (when item
           (items-db/delete-item! db id)
-          (sse/broadcast! (:id list) "item-deleted"
+          (sse/broadcast! db code "item-deleted"
                           {:id (:id item)
                            :html (str "<div id=\"item-" (:id item) "\" hx-swap-oob=\"delete\"></div>")}))
         (-> (resp/response "")
-            (resp/content-type "text/html"))))))
+            (resp/content-type "text/html")))))
+
+(defn items-list-page
+  "GET /list/:code/items-list — Return full item list HTML fragment."
+  [{:keys [db] :as req}]
+  (let [code (get-in req [:path-params :code])
+        lst  (lists-db/find-by-code db code)]
+    (if (or (nil? lst) (not= "active" (:status lst)))
+      (-> (resp/response "<p class='text-gray-400'>No items yet.</p>")
+          (resp/content-type "text/html"))
+      (let [items (items-db/find-items-by-list db (:id lst))]
+        (-> (render-item-list items lst)
+            (resp/response)
+            (resp/content-type "text/html")))))))
