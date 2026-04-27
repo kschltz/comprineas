@@ -19,7 +19,8 @@ async function registerAndLogin(page, email, password, displayName) {
 async function createList(page, name) {
   await page.fill('input[name="name"]', name);
   await page.click('text=Create List');
-  await page.waitForURL('**/list/**');
+  // HTMX swaps body, no URL change — wait for list page content
+  await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
 }
 
 async function addItem(page, itemName, quantity, observations) {

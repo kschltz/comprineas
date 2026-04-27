@@ -1,39 +1,38 @@
 const { test, expect } = require('@playwright/test');
 
-// ── Helpers ──────────────────────────────────────────────────
+function uniqueEmail(prefix) {
+  return `${prefix}-${Date.now()}@e2e-test.com`;
+}
 
 async function registerAndLogin(page, email, password, displayName) {
   await page.goto('/register');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
-  await page.fill('input[name="password_confirm"]', password);
   await page.fill('input[name="display_name"]', displayName);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard');
+  await Promise.all([
+    page.waitForURL('**/dashboard', { timeout: 10000 }),
+    page.click('button[type="submit"]')
+  ]);
 }
 
-async function createListAndGetCode(page, name) {
+async function createListAndWait(page, name) {
   await page.fill('input[name="name"]', name);
   await page.click('text=Create List');
-  await page.waitForURL('**/list/**');
-  return page.url().split('/list/')[1];
+  // HTMX swaps body — wait for list content
+  await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
 }
 
-async function navigateToList(page, code) {
+async function extractListCode(page) {
+  // Find the code displayed in the list view (it appears in href attributes)
+  const body = await page.content();
+  const m = body.match(/complete\/([a-z0-9]{6})/);
+  return m ? m[1] : null;
+}
+
+async function navigateToListViaUrl(page, code) {
   await page.goto('/list/' + code);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
 }
-
-// ── Unique email counter per worker ─────────────────────────
-
-let emailSeq = 0;
-function uniqueEmail(prefix) {
-  emailSeq++;
-  // Timestamp + sequence ensures uniqueness across parallel workers
-  return `${prefix}-${Date.now()}-${emailSeq}@e2e-test.com`;
-}
-
-// ── Tests ────────────────────────────────────────────────────
 
 test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () => {
 
@@ -52,13 +51,15 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
       await registerAndLogin(pageB, emailB, password, 'RealTimeB');
     });
 
+    let code;
     await test.step('User A creates a list and gets share code', async () => {
-      const code = await createListAndGetCode(pageA, 'Real-Time Item Sync');
+      await createListAndWait(pageA, 'Real-Time Item Sync');
+      code = await extractListCode(pageA);
       expect(code).toMatch(/^[a-z0-9]{6}$/);
     });
 
     await test.step('User B navigates to the same list', async () => {
-      await navigateToList(pageB, code);
+      await navigateToListViaUrl(pageB, code);
     });
 
     await test.step('User A adds an item', async () => {
@@ -93,7 +94,8 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
 
     let code;
     await test.step('User A creates a list and adds an item', async () => {
-      code = await createListAndGetCode(pageA, 'Check Sync Test');
+      await createListAndWait(pageA, 'Check Sync Test');
+      code = await extractListCode(pageA);
       await pageA.fill('input[name="name"]', 'Bananas');
       await pageA.fill('input[name="quantity"]', '1 bunch');
       await pageA.click('button:has-text("Add Item")');
@@ -101,22 +103,19 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
     });
 
     await test.step('User B navigates to the same list and sees the item', async () => {
-      await navigateToList(pageB, code);
+      await navigateToListViaUrl(pageB, code);
       await expect(pageB.locator('text=Bananas')).toBeVisible({ timeout: 5000 });
     });
 
     await test.step('User A checks the item', async () => {
       const checkbox = pageA.locator('#item-list input[type="checkbox"]');
       await checkbox.check();
-      // Assert the item appears checked on User A's page
       await expect(pageA.locator('div.opacity-50:has(text=Bananas)')).toBeVisible({ timeout: 5000 });
     });
 
     await test.step('Assert User B sees the item as checked within 5 seconds via SSE', async () => {
-      // Checked items get opacity-50 + bg-gray-50, text is wrapped in <s> tag
       const checkedItem = pageB.locator('div.opacity-50:has(text=Bananas)');
       await expect(checkedItem).toBeVisible({ timeout: 5000 });
-      // Verify the checkbox is also checked
       await expect(pageB.locator('#item-list input[type="checkbox"]')).toBeChecked();
     });
 
@@ -149,11 +148,10 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
     await test.step('User A creates a new list', async () => {
       await pageA.fill('input[name="name"]', 'Dashboard SSE Alpha');
       await pageA.click('text=Create List');
-      await pageA.waitForURL('**/list/**');
+      await expect(pageA.locator('#list-name')).toBeVisible({ timeout: 10000 });
     });
 
     await test.step('Assert User B sees the new list appear on dashboard within 5 seconds via SSE', async () => {
-      // The dashboard auto-reloads via hx-trigger="sse:list-created" hx-get="/dashboard"
       await expect(pageB.locator('text=Dashboard SSE Alpha')).toBeVisible({ timeout: 5000 });
     });
 

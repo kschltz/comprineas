@@ -19,8 +19,8 @@ async function registerAndLogin(page, email, password, displayName) {
 async function createList(page, name) {
   await page.fill('input[name="name"]', name);
   await page.click('text=Create List');
-  await page.waitForURL('**/list/**');
-  return page.url().split('/list/')[1];
+  // HTMX swaps body, no URL change — wait for list page content
+  await expect(page.locator('#list-name')).toBeVisible({ timeout: 10000 });
 }
 
 test.describe('PRD-0007 — My Lists Dashboard', () => {
@@ -56,7 +56,8 @@ test.describe('PRD-0007 — My Lists Dashboard', () => {
     // Complete the list — accept the confirmation dialog
     page.on('dialog', dialog => dialog.accept());
     await page.click('text=Complete List');
-    await page.waitForURL('**/dashboard');
+    // HTMX handles redirect, swaps body — wait for dashboard content
+    await expect(page.locator('h1')).toContainText('My Lists', { timeout: 10000 });
 
     await expect(page.getByText('Active Lists')).toBeVisible();
     await expect(page.getByText('Past Lists')).toBeVisible();
