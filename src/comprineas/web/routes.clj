@@ -76,9 +76,11 @@
   (fn [req] (handler (merge req deps))))
 
 (defn- sse-request? [req]
-  (let [uri (:uri req)]
-    (or (= uri "/dashboard/events")
-        (some? (re-matches #"/list/[A-Za-z0-9]+/events" uri)))))
+  (let [uri (:uri req)
+        is-sse (or (= uri "/dashboard/events")
+                   (some? (re-matches #"/list/[A-Za-z0-9]+/events" uri)))]
+    (binding [*out* *err*] (println "[ROUTER] uri:" uri "is-sse:" is-sse))
+    is-sse))
 
 (defn app [{:keys [db secrets mailer]}]
   (let [deps {:db db :secrets secrets :mailer mailer}
