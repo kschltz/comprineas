@@ -3,7 +3,8 @@
    Uses an atom to track SSE channels per list code.
    Broadcasts typed events (list-updated, participant-joined, item-added, item-updated, item-deleted, list-created) to connected clients."
   (:require [cheshire.core :as json]
-            [ring.util.response :as response]))
+            [ring.util.response :as response]
+            [org.httpkit.server :as http-kit]))
 
 ;; ──────────────────────────────────────────────────────────
 ;; Channel registry
@@ -30,19 +31,6 @@
   (get @sse-channels list-code #{}))
 
 ;; ──────────────────────────────────────────────────────────
-;; send! helper — delegates to http-kit send! when available
-;; ──────────────────────────────────────────────────────────
-
-(defn send!
-  "Send data to an http-kit channel. Wraps org.httpkit.server/send!."
-  [ch data]
-  (try
-    ((resolve 'org.httpkit.server/send!) ch data)
-    (catch Exception e
-      ;; http-kit not available in test mode; no-op
-      nil)))
-
-;; ──────────────────────────────────────────────────────────
 ;; Broadcast
 ;; ──────────────────────────────────────────────────────────
 
@@ -52,10 +40,10 @@
    data: a map that may contain :html for direct swap, or other keys to send as SSE data."
   ([ds list-code event-type data]
    (let [channels (connected-viewers list-code)
-        ;; HTMX SSE swap expects raw HTML in the data field,
-        ;; not JSON.  For hx-trigger="sse:event-name" the data
-        ;; content doesn't matter — only the event name does.
-        ;; SSE multi-line data: each line prefixed with "data: "
+         ;; HTMX SSE swap expects raw HTML in the data field,
+         ;; not JSON.  For hx-trigger="sse:event-name" the data
+         ;; content doesn't matter — only the event name does.
+         ;; SSE multi-line data: each line prefixed with "data: "
          sse-data (if-let [html (:html data)]
                     (let [lines (clojure.string/split-lines html)]
                       (str "event: " event-type "\n"
@@ -64,7 +52,7 @@
                     (str "event: " event-type "\ndata: {}\n\n"))]
      (doseq [ch channels]
        (try
-         (send! ch sse-data)
+         (http-kit/send! ch sse-data)
          (catch Exception _
            ;; Channel likely closed; remove it
            (unregister-channel! list-code ch)))))))
@@ -81,39 +69,24 @@
 
 (defn sse-handler
   "Ring handler for SSE connections at /list/:code/events.
-   Sets up the SSE stream and registers the channel.
-   Requires http-kit server (async response)."
+   Uses http-kit's as-channel to keep the connection open for streaming events."
   [req]
-  (let [list-code (get-in req [:path-params :code])
-        ;; http-kit async response
-        on-open (fn [ch]
-                  (register-channel! list-code ch)
-                  ;; Send initial comment to keep connection alive
-                  (send! ch ":ok\n\n"))
-        on-close (fn [ch]
-                   (unregister-channel! list-code ch))]
-    ;; Return async response for http-kit
-    {:status 200
-     :headers {"Content-Type" "text/event-stream"
-               "Cache-Control" "no-cache"
-               "Connection" "keep-alive"
-               "X-Accel-Buffering" "no"}
-     :body (fn [ch]
-             (on-open ch))}))
+  (let [list-code (get-in req [:path-params :code])]
+    (http-kit/as-channel req
+                         {:on-open   (fn [ch]
+                                       (register-channel! list-code ch)
+                    ;; Send initial comment to keep connection alive
+                                       (http-kit/send! ch ":ok\n\n"))
+                          :on-close  (fn [ch _status]
+                                       (unregister-channel! list-code ch))})))
 
 (defn dashboard-sse-handler
   "Ring handler for dashboard SSE connections at /dashboard/events.
-   Registers channel under the 'dashboard' key."
+   Uses http-kit's as-channel to keep the connection open for streaming events."
   [req]
-  (let [on-open (fn [ch]
-                  (register-channel! "dashboard" ch)
-                  (send! ch ":ok\n\n"))
-        on-close (fn [ch]
-                   (unregister-channel! "dashboard" ch))]
-    {:status 200
-     :headers {"Content-Type" "text/event-stream"
-               "Cache-Control" "no-cache"
-               "Connection" "keep-alive"
-               "X-Accel-Buffering" "no"}
-     :body (fn [ch]
-             (on-open ch))}))
+  (http-kit/as-channel req
+                       {:on-open   (fn [ch]
+                                     (register-channel! "dashboard" ch)
+                                     (http-kit/send! ch ":ok\n\n"))
+                        :on-close  (fn [ch _status]
+                                     (unregister-channel! "dashboard" ch))}))
