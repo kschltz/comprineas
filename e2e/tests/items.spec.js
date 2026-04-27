@@ -78,7 +78,9 @@ test.describe('PRD-0005: List Items', () => {
 
     // Give HTMX time to process the load trigger and items-list response
     await page.waitForTimeout(2000);
-    // Verify items are visible (ignore loading text — may persist if trigger fires async)
+    // Verify items are visible
+    const itemListText = await page.textContent('#item-list');
+    console.log('item-list content:', itemListText);
     await expect(page.locator('#item-list')).toContainText('Butter');
     await expect(page.locator('#item-list')).toContainText('Cheese');
 
