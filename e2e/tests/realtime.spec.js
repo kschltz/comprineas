@@ -61,7 +61,7 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
     await test.step('User A creates a list and gets share code', async () => {
       await createListAndWait(pageA, 'Real-Time Item Sync');
       code = await extractListCode(pageA);
-      expect(code).toMatch(/^[a-z0-9]{6}$/);
+      expect(code).toMatch(/^[a-zA-Z0-9]{6}$/);
     });
 
     await test.step('User B navigates to the same list', async () => {

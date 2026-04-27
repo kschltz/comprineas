@@ -54,7 +54,7 @@
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Join an Existing List</h2>
                 <div id="join-form-area">
                     <form hx-post="/join"
-                          hx-target="#join-form-area"
+                          hx-target="body"
                           hx-swap="outerHTML"
                           class="flex gap-3">
                         <input type="text" name="code" required
