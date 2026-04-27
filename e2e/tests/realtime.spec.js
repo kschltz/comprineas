@@ -116,11 +116,11 @@ test.describe('SSE real-time updates (PRD-0003 FR-10, PRD-0005 FR-9/10/11)', () 
     await test.step('User A checks the item', async () => {
       const checkbox = pageA.locator('#item-list input[type="checkbox"]');
       await checkbox.check();
-      await expect(pageA.locator('div.opacity-50:has(text=Bananas)')).toBeVisible({ timeout: 5000 });
+      await expect(pageA.locator('div.opacity-50').filter({ hasText: 'Bananas' })).toBeVisible({ timeout: 5000 });
     });
 
     await test.step('Assert User B sees the item as checked within 5 seconds via SSE', async () => {
-      const checkedItem = pageB.locator('div.opacity-50:has(text=Bananas)');
+      const checkedItem = pageB.locator('div.opacity-50').filter({ hasText: 'Bananas' });
       await expect(checkedItem).toBeVisible({ timeout: 5000 });
       await expect(pageB.locator('#item-list input[type="checkbox"]')).toBeChecked();
     });

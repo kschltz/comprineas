@@ -49,11 +49,19 @@
 (defn broadcast!
   "Broadcast an SSE event to all connected clients for a list.
    event-type: e.g. 'item-added', 'item-updated', 'item-deleted', 'participant-joined', 'list-updated', 'list-created'
-   data: a map that will be JSON-encoded"
+   data: a map that may contain :html for direct swap, or other keys to send as SSE data."
   ([ds list-code event-type data]
    (let [channels (connected-viewers list-code)
-         payload (json/generate-string (merge {:type event-type} data))
-         sse-data (str "event: " event-type "\ndata: " payload "\n\n")]
+        ;; HTMX SSE swap expects raw HTML in the data field,
+        ;; not JSON.  For hx-trigger="sse:event-name" the data
+        ;; content doesn't matter — only the event name does.
+        ;; SSE multi-line data: each line prefixed with "data: "
+         sse-data (if-let [html (:html data)]
+                    (let [lines (clojure.string/split-lines html)]
+                      (str "event: " event-type "\n"
+                           (clojure.string/join "\n" (map #(str "data: " %) lines))
+                           "\n\n"))
+                    (str "event: " event-type "\ndata: {}\n\n"))]
      (doseq [ch channels]
        (try
          (send! ch sse-data)
