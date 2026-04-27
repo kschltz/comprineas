@@ -30,6 +30,20 @@
   (get @sse-channels list-code #{}))
 
 ;; ──────────────────────────────────────────────────────────
+;; send! helper — delegates to http-kit send! when available
+;; Must be defined before broadcast! and handlers that use it
+;; ──────────────────────────────────────────────────────────
+
+(defn send!
+  "Send data to an http-kit channel. Wraps org.httpkit.server/send!."
+  [ch data]
+  (try
+    ((resolve 'org.httpkit.server/send!) ch data)
+    (catch Exception e
+      ;; http-kit not available in test mode; no-op
+      nil)))
+
+;; ──────────────────────────────────────────────────────────
 ;; Broadcast
 ;; ──────────────────────────────────────────────────────────
 
