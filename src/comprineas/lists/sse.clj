@@ -9,9 +9,7 @@
 ;; Channel registry
 ;; ──────────────────────────────────────────────────────────
 
-(defonce ^:private sse-channels
-  "Map of list-code → #{channel}. Each channel is a http-kit AsyncChannel."
-  (atom {}))
+(defonce ^:private sse-channels (atom {}))
 
 (defn register-channel!
   "Register an SSE channel for a list code. Returns the channel for convenience."
