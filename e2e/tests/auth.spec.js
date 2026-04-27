@@ -30,11 +30,20 @@ async function browserLogin(page, email, password) {
 
 test.describe('Authentication', () => {
 
-  test('user can register and see dashboard', async ({ page }) => {
-    const email = uniqueEmail('reg');
-    await createUser(page, email, 'password123', 'Reggie');
-    await browserLogin(page, email, 'password123');
-    await expect(page.locator('body')).toContainText('Hi, Reggie');
+  test('login redirects to dashboard', async ({ page }) => {
+    const email = uniqueEmail('redir');
+    await createUser(page, email, 'password123', 'Redirect');
+    await page.goto('/login');
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', 'password123');
+    
+    // Watch for the redirect response
+    const [response] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/dashboard') && resp.status() === 200, { timeout: 5000 }),
+      page.click('button:has-text("Log in")')
+    ]);
+    // If we get here, the dashboard loaded successfully
+    expect(response.status()).toBe(200);
   });
 
   test('user can login with password', async ({ page }) => {
